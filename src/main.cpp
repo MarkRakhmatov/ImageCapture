@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include "VideoDevice/VideoDevice.h"
 #include <sstream>
-#include "Utils/JpegHelper.h"
+#include "ImageProcessing/JpegHelper.h"
+#include "ImageProcessing/ImageProcessor.h"
 
 ImageBuffer<unsigned char> GetImageBufferFromDevice(std::string deviceName)
 {
@@ -21,11 +22,11 @@ int main()
 {
   std::string deviceName("/dev/video0");
   std::string fileName("webcam_output_");
-  for(int i = 0; i < 100; ++i)
+  for(int i = 0; i < 20; ++i)
   {
       auto decomprBuffer = GetImageBufferFromDevice(deviceName);
+      ImageProcessor::ToGrayScale(decomprBuffer);
       auto compressedBuffer = JpegHelper::Compress(decomprBuffer);
-      //TODO add image processing
       std::ostringstream ss;
       ss << fileName << i << ".jpeg";
       JpegHelper::WriteBufferToFile(compressedBuffer, ss.str());

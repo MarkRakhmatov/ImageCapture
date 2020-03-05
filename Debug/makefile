@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include src/VideoDevice/subdir.mk
 -include src/Utils/subdir.mk
+-include src/ImageProcessing/subdir.mk
 -include src/subdir.mk
 -include subdir.mk
 -include objects.mk

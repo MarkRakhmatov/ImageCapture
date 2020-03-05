@@ -7,7 +7,9 @@
 template<typename T, size_t PixelSize = 3>
 struct Pixel
 {
-  T* pixelArray;
+  Pixel(T* dataPtr):data(dataPtr)
+  {}
+  T* data;
 };
 
 template<typename T, size_t PixelSize = 3>
@@ -53,8 +55,8 @@ public:
   }
   Pixel<T, PixelSize> GetElement(size_t i, size_t j)
   {
-    auto index = i*mWidth + j*PixelSize;
-    return mBuffer[i*mWidth + j*PixelSize];
+    auto index = (i*mWidth + j)*PixelSize;
+    return Pixel<T, PixelSize>(&mBuffer[index]);
   }
   T* Get()
   {

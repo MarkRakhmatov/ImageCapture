@@ -1,5 +1,5 @@
 #include "JpegHelper.h"
-#include "ResourceHolder.h"
+#include "../Utils/ResourceHolder.h"
 #include <memory>
 #include <fstream>
 #include <algorithm>
@@ -50,9 +50,8 @@ JpegHelper::Compress(const ImageBuffer<unsigned char>& buffer)
   {
       return {};
   }
-  std::vector<unsigned char> jpegBuffer;
-  jpegBuffer.resize(jpegCompSize);
-  return jpegBuffer;
+  compressedImage.resize(jpegCompSize);
+  return compressedImage;
 }
 
 int
@@ -64,7 +63,7 @@ JpegHelper::WriteBufferToFile (const std::vector<unsigned char>& buf,
       return -1;
   }
   std::ofstream outFile;
-  outFile.open(fileName.c_str(), std::ios::binary| std::ios::app);
+  outFile.open(fileName.c_str(), std::ios::binary | std::ios::app | std::ios::out);
   outFile.write(reinterpret_cast<const char*>(buf.data()), buf.size());
   return 0;
 }

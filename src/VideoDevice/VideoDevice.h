@@ -21,5 +21,5 @@ private:
   MappedBuffer mBuffer{};
   CallWrapper mCallHandler;
 
-  const std::chrono::milliseconds mTimeout{250};
+  const std::chrono::milliseconds mTimeout{300};
 };
