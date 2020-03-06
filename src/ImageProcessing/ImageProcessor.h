@@ -9,9 +9,9 @@ public:
   {
     auto width = buffer.GetWidth();
     auto height = buffer.GetHeight();
-    for(auto i = 0; i <height; ++i)
+    for(size_t i = 0; i <height; ++i)
     {
-	for(auto j = 0; j < width; ++j)
+	for(size_t j = 0; j < width; ++j)
 	{
 	    auto pixel = buffer.GetElement(i, j);
 	    auto avarage = (pixel.data[0] + pixel.data[1] + pixel.data[2])/3;

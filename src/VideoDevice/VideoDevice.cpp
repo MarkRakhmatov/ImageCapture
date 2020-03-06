@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <linux/ioctl.h>
 #include <linux/types.h>
 #include <linux/v4l2-common.h>
 #include <linux/v4l2-controls.h>
@@ -31,7 +30,6 @@
 VideoDevice::VideoDevice(const std::string& deviceName)
 {
   OpenDevice(deviceName);
-  //SetImageFormat();
 }
 
 void VideoDevice::SetImageFormat()
@@ -75,8 +73,7 @@ VideoDevice::OpenDevice(const std::string& deviceName)
   mDescriptor = DescriptorHolder{std::move(res.first)};
 
   v4l2_capability capability;
-  res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-    (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_QUERYCAP, &capability);
+  res = AsyncIoctl(VIDIOC_QUERYCAP, &capability);
   if(!res.second)
   {
       perror("Failed to get device capabilities, VIDIOC_QUERYCAP");
@@ -97,8 +94,7 @@ VideoDevice::InitBuffer()
   requestBuffer.count = 1; // one request buffer
   requestBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; // request a buffer which we an use for capturing frames
   requestBuffer.memory = V4L2_MEMORY_MMAP;
-  auto res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-          (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_REQBUFS, &requestBuffer);
+  auto res = AsyncIoctl(VIDIOC_REQBUFS, &requestBuffer);
   if(!res.second)
   {
       perror("Could not request buffer from device, VIDIOC_REQBUFS");
@@ -113,8 +109,7 @@ VideoDevice::InitBuffer()
   queryBuffer.memory = V4L2_MEMORY_MMAP;
   queryBuffer.index = 0;
 
-  res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-        (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_QUERYBUF, &queryBuffer);
+  res = AsyncIoctl(VIDIOC_QUERYBUF, &queryBuffer);
   if(!res.second)
   {
       perror("Device did not return the buffer information, VIDIOC_QUERYBUF");
@@ -136,8 +131,7 @@ VideoDevice::InitBuffer()
   bufferinfo.index = 0;
   // Activate streaming
   int type = bufferinfo.type;
-  res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-          (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_STREAMON, &type);
+  res = AsyncIoctl(VIDIOC_STREAMON, &type);
   if(!res.second)
   {
       perror("Could not start streaming, VIDIOC_STREAMON");
@@ -146,8 +140,7 @@ VideoDevice::InitBuffer()
   }
 
   // Queue the buffer
-  res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-           (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_QBUF, &bufferinfo);
+  res = AsyncIoctl(VIDIOC_QBUF, &bufferinfo);
    if(!res.second)
   {
       perror("Could not queue buffer, VIDIOC_QBUF");
@@ -157,8 +150,7 @@ VideoDevice::InitBuffer()
   }
 
   // Dequeue the buffer
-  res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-          (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_DQBUF, &bufferinfo);
+  res = AsyncIoctl(VIDIOC_DQBUF, &bufferinfo);
   if(!res.second)
   {
       perror("Could not dequeue the buffer, VIDIOC_DQBUF");
@@ -171,8 +163,7 @@ VideoDevice::InitBuffer()
   std::cout << "Buffer has: " << bufferinfo.bytesused / 1024
           << " KBytes of data" << std::endl;
 
-  res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-          (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_STREAMOFF, &type);
+  res = AsyncIoctl(VIDIOC_STREAMOFF, &type);
   if(!res.second)
   {
       perror("Could not end streaming, VIDIOC_STREAMOFF");
