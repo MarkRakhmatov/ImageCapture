@@ -6,9 +6,8 @@
 #include "ImageProcessing/JpegHelper.h"
 #include "ImageProcessing/ImageProcessor.h"
 
-ImageBuffer<unsigned char> GetImageBufferFromDevice(std::string deviceName)
+ImageBuffer<unsigned char> GetImageBufferFromDevice(VideoDevice& device)
 {
-  VideoDevice device(deviceName);
   MappedBuffer& buf = device.GetRawBuffer();
   auto imgBuff = JpegHelper::Decompress(reinterpret_cast<unsigned char*>(buf.Get()), buf.Size());
   if(imgBuff.Get()<0)
@@ -21,10 +20,13 @@ ImageBuffer<unsigned char> GetImageBufferFromDevice(std::string deviceName)
 int main()
 {
   std::string deviceName("/dev/video0");
-  std::string fileName("webcam_output_");
+  std::string fileName("Images/webcam_output_");
+
+  VideoDevice device(deviceName);
+  device.HandleParameters();
   for(int i = 0; i < 20; ++i)
   {
-      auto decomprBuffer = GetImageBufferFromDevice(deviceName);
+      auto decomprBuffer = GetImageBufferFromDevice(device);
       ImageProcessor::ToGrayScale(decomprBuffer);
       auto compressedBuffer = JpegHelper::Compress(decomprBuffer);
       std::ostringstream ss;

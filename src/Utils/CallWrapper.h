@@ -26,7 +26,7 @@ template<
   {
     using ReturnType = typename std::result_of<TFunc(TArgs...)>::type;
     auto startTime = std::chrono::system_clock::now();
-    while(std::chrono::system_clock::now() - startTime < timeout)
+    do
     {
       ReturnType res = func(std::forward<TArgs>(args)...);
       auto opStatus = CheckerFunc(res);
@@ -38,7 +38,7 @@ template<
       {
 	  break;
       }
-    }
+    } while(std::chrono::system_clock::now() - startTime < timeout);
     return {ReturnType{}, false};
   }
 };

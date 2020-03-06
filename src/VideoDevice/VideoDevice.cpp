@@ -28,22 +28,23 @@
 #include <stdexcept>
 
 VideoDevice::VideoDevice(const std::string& deviceName)
+: mDeviceName(deviceName)
 {
-  OpenDevice(deviceName);
+  OpenDevice(mDeviceName);
+  SetImageFormat();
 }
 
 void VideoDevice::SetImageFormat()
 {
   v4l2_format imageFormat{0};
   imageFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  imageFormat.fmt.pix.width = 1280;
-  imageFormat.fmt.pix.height = 720;
+  imageFormat.fmt.pix.width = 1920;
+  imageFormat.fmt.pix.height = 1080;
 
   imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG;
   imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
   // tell the device you are using this format
-  auto res = mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
-  (ioctl, mTimeout, mDescriptor.Get(), VIDIOC_S_FMT, &imageFormat);
+  auto res = AsyncIoctl(VIDIOC_S_FMT, &imageFormat);
   if(!res.second)
   {
       perror("Device could not set format, VIDIOC_S_FMT");
@@ -54,7 +55,6 @@ MappedBuffer&
 VideoDevice::GetRawBuffer()
 {
   mBuffer.Reset();
-  SetImageFormat();
   InitBuffer();
 
   return mBuffer;
@@ -86,10 +86,49 @@ VideoDevice::OpenDevice(const std::string& deviceName)
 }
 
 void
+VideoDevice::HandleParameters()
+{
+  v4l2_streamparm params{};
+  params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  auto res= AsyncIoctl(VIDIOC_G_PARM , &params);
+  if(!res.second)
+  {
+      perror("Could not request stream parameters, VIDIOC_G_PARM");
+      return;
+  }
+  if((params.parm.capture.capturemode & V4L2_MODE_HIGHQUALITY) != 0 )
+  {
+      return;
+  }
+  params.parm.capture.capturemode |= V4L2_MODE_HIGHQUALITY;
+  res= AsyncIoctl(VIDIOC_S_PARM , &params);
+  if(!res.second)
+  {
+      perror("Could not set stream parameters, VIDIOC_G_PARM");
+  }
+}
+
+VideoDevice&
+VideoDevice::operator = (VideoDevice&& dev)
+{
+  mDescriptor = std::move(dev.mDescriptor);
+  mBuffer = std::move(dev.mBuffer);
+  mCallHandler = std::move(dev.mCallHandler);
+  mDeviceName = std::move(dev.mDeviceName);
+  return *this;
+}
+
+VideoDevice::VideoDevice (VideoDevice&& dev)
+: mDescriptor(std::move(dev.mDescriptor))
+, mBuffer(std::move(dev.mBuffer))
+, mCallHandler(std::move(dev.mCallHandler))
+, mDeviceName(std::move(dev.mDeviceName))
+{}
+
+void
 VideoDevice::InitBuffer()
 {
   // 4. Request Buffers from the device
-  const std::chrono::milliseconds timeout(5000);
   v4l2_requestbuffers requestBuffer{0};
   requestBuffer.count = 1; // one request buffer
   requestBuffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; // request a buffer which we an use for capturing frames
@@ -98,7 +137,6 @@ VideoDevice::InitBuffer()
   if(!res.second)
   {
       perror("Could not request buffer from device, VIDIOC_REQBUFS");
-      std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
       return;
   }
 
@@ -113,7 +151,6 @@ VideoDevice::InitBuffer()
   if(!res.second)
   {
       perror("Device did not return the buffer information, VIDIOC_QUERYBUF");
-      std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
       std::cout << "Errno: " << errno <<std::endl;
       return;
   }
@@ -135,7 +172,7 @@ VideoDevice::InitBuffer()
   if(!res.second)
   {
       perror("Could not start streaming, VIDIOC_STREAMON");
-      std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
+      Reset();
       return;
   }
 
@@ -144,8 +181,7 @@ VideoDevice::InitBuffer()
    if(!res.second)
   {
       perror("Could not queue buffer, VIDIOC_QBUF");
-      std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
-      mBuffer.Reset();
+      Reset();
       return;
   }
 
@@ -154,8 +190,7 @@ VideoDevice::InitBuffer()
   if(!res.second)
   {
       perror("Could not dequeue the buffer, VIDIOC_DQBUF");
-      std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
-      mBuffer.Reset();
+      Reset();
       return;
   }
   // Frames get written after dequeuing the buffer
@@ -168,7 +203,15 @@ VideoDevice::InitBuffer()
   {
       perror("Could not end streaming, VIDIOC_STREAMOFF");
       std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
-      mBuffer.Reset();
+      Reset();
       return;
   }
+}
+
+void
+VideoDevice::Reset ()
+{
+  mBuffer.Reset();
+  mDescriptor.Reset();
+  OpenDevice(mDeviceName);
 }

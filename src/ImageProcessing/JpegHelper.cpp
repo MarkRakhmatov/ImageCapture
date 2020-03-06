@@ -37,9 +37,11 @@ JpegHelper::Compress(const ImageBuffer<unsigned char>& buffer)
   JpegHolder jHandle{tjInitCompress()};
 
   int pixelFormat = TJPF_RGB;
-  int jpegQual = 20;
+  // 93 due to turbo-jpeg bug with compressing images
+  // if quality > 93 image is corrupted for some reason
+  int jpegQual = 93;
   int jpegSubsamp = 0;
-  int flags = TJFLAG_STOPONWARNING;
+  int flags = 1;
   int pitch = tjPixelSize[pixelFormat] * buffer.GetWidth();
   std::vector<unsigned char> compressedImage(pitch*buffer.GetHeight()/15, '\0');
   unsigned long jpegCompSize = compressedImage.size();
@@ -58,12 +60,12 @@ int
 JpegHelper::WriteBufferToFile (const std::vector<unsigned char>& buf,
 			       const std::string& fileName)
 {
+  remove(fileName.c_str());
   if(!buf.size())
   {
       return -1;
   }
-  std::ofstream outFile;
-  outFile.open(fileName.c_str(), std::ios::binary | std::ios::app | std::ios::out);
+  std::ofstream outFile(fileName.c_str(), std::ios::binary | std::ios::app);
   outFile.write(reinterpret_cast<const char*>(buf.data()), buf.size());
   return 0;
 }
