@@ -14,10 +14,13 @@ public:
 	for(size_t j = 0; j < width; ++j)
 	{
 	    auto pixel = buffer.GetElement(i, j);
-	    auto avarage = (pixel.data[0] + pixel.data[1] + pixel.data[2])/3;
-	    pixel.data[0] = avarage;
-	    pixel.data[1] = avarage;
-	    pixel.data[2] = avarage;
+	    auto& red = pixel[0];
+	    auto& green = pixel[1];
+	    auto& blue = pixel[2];
+	    auto avarage = (red + green + blue)/3;
+	    red = avarage;
+	    blue = avarage;
+	    green = avarage;
 	}
     }
   }

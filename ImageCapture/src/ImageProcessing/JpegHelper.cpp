@@ -1,5 +1,5 @@
 #include "JpegHelper.h"
-#include "../Utils/ResourceHolder.h"
+#include "ResourceHolder.h"
 #include <memory>
 #include <fstream>
 #include <algorithm>

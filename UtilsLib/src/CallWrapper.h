@@ -29,7 +29,7 @@ template<
     do
     {
       ReturnType res = func(std::forward<TArgs>(args)...);
-      auto opStatus = CheckerFunc(res);
+      ECheckOperation opStatus = CheckerFunc(res);
       if(opStatus == ECheckOperation::SUCCESS)
       {
 	  return {res, true};

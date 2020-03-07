@@ -52,7 +52,7 @@ void VideoDevice::SetImageFormat()
 }
 
 MappedBuffer&
-VideoDevice::GetRawBuffer()
+VideoDevice::GetBuffer()
 {
   mBuffer.Reset();
   InitBuffer();
@@ -214,4 +214,16 @@ VideoDevice::Reset ()
   mBuffer.Reset();
   mDescriptor.Reset();
   OpenDevice(mDeviceName);
+}
+
+ImageBuffer<unsigned char>
+GetImageBufferFromDevice (VideoDevice& device)
+{
+  MappedBuffer& buf = device.GetBuffer();
+  auto imgBuff = JpegHelper::Decompress(reinterpret_cast<unsigned char*>(buf.Get()), buf.Size());
+  if(imgBuff.Get()<0)
+  {
+      std::cout << "INVALID FILE FORMAT!!! FAILED TO DECOMPRESS JPEG "<<std::endl;
+  }
+  return imgBuff;
 }

@@ -3,6 +3,7 @@
 	<name>ImageCapture</name>
 	<comment></comment>
 	<projects>
+		<project>Utils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

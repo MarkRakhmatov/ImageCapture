@@ -5,8 +5,9 @@
 #include <sys/ioctl.h>
 
 #include "MappedBuffer.h"
-#include "../Utils/DescriptorHolder.h"
-#include "../Utils/CallWrapper.h"
+#include "DescriptorHolder.h"
+#include "CallWrapper.h"
+#include "../ImageProcessing/JpegHelper.h"
 
 class VideoDevice
 {
@@ -17,7 +18,7 @@ public:
   VideoDevice(const VideoDevice& res) = delete;
   VideoDevice& operator=(const VideoDevice& res) = delete;
 
-  MappedBuffer& GetRawBuffer();
+  MappedBuffer& GetBuffer();
   void HandleParameters();
 private:
   template<typename T>
@@ -38,3 +39,5 @@ private:
 
   const std::chrono::milliseconds mTimeout{300};
 };
+
+ImageBuffer<unsigned char> GetImageBufferFromDevice(VideoDevice& device);

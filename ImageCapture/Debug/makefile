@@ -9,7 +9,6 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include src/VideoDevice/subdir.mk
--include src/Utils/subdir.mk
 -include src/ImageProcessing/subdir.mk
 -include src/subdir.mk
 -include subdir.mk
@@ -47,7 +46,7 @@ all: ImageCapture
 ImageCapture: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	arm-linux-gnueabihf-g++  -static -L/usr/arm-linux-gnueabihf/lib -L/home/mark/workspace/libjpeg-turbo-2.0.4/Build/Debug/ -o "ImageCapture" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-linux-gnueabihf-g++  -static -L/home/mark/workspace/libjpeg-turbo-2.0.4/Build/Debug/ -L"/home/mark/workspace/ImageCapture/UtilsLib/Debug" -L/usr/arm-linux-gnueabihf/lib -o "ImageCapture" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -59,7 +58,7 @@ clean:
 
 post-build:
 	-@echo 'Copy debug version to  beaglebone'
-	-bash -c "scp /home/mark/workspace/ImageCapture/Debug/ImageCapture debian@192.168.7.2:ImageCapture"
+	-bash -c "scp /home/mark/workspace/ImageCapture/ImageCapture/Debug/ImageCapture debian@192.168.7.2:ImageCapture"
 	-@echo ' '
 
 .PHONY: all clean dependents post-build

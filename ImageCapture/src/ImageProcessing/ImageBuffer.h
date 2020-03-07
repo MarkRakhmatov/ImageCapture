@@ -3,12 +3,25 @@
 #include <vector>
 #include <array>
 #include <utility>
+#include <cassert>
 
 template<typename T, size_t PixelSize = 3>
-struct Pixel
+class Pixel
 {
-  Pixel(T* dataPtr):data(dataPtr)
+public:
+  Pixel(T* dataPtr)
+  : data(dataPtr)
   {}
+  T& operator[](size_t index)
+  {
+    assert(index < PixelSize);
+    return data[index];
+  }
+  constexpr size_t Size() const
+  {
+    return PixelSize;
+  }
+private:
   T* data;
 };
 
