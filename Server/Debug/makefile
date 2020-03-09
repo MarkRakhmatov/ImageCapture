@@ -8,8 +8,7 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include src/VideoDevice/subdir.mk
--include src/ImageProcessing/subdir.mk
+-include src/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -39,21 +38,27 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: libImageCapture.a
+all: Server
 
 # Tool invocations
-libImageCapture.a: $(OBJS) $(USER_OBJS)
+Server: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
-	@echo 'Invoking: Cross GCC Archiver'
-	arm-linux-gnueabihf-ar -r  "libImageCapture.a" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Invoking: Cross G++ Linker'
+	arm-linux-gnueabihf-g++ -static -L"/home/mark/workspace/ImageCapture/ImageCapture/Debug" -L/home/mark/workspace/libjpeg-turbo-2.0.4/Build/Debug -L"/home/mark/workspace/ImageCapture/Utils/Debug" -o "Server" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
+	$(MAKE) --no-print-directory post-build
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(ARCHIVES)$(C_DEPS)$(CPP_DEPS) libImageCapture.a
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(C_DEPS)$(CPP_DEPS) Server
 	-@echo ' '
 
-.PHONY: all clean dependents
+post-build:
+	-@echo 'Copy debug version to  beaglebone'
+	-bash -c "scp /home/mark/workspace/ImageCapture/Server/Debug/Server debian@192.168.7.2:Server"
+	-@echo ' '
+
+.PHONY: all clean dependents post-build
 
 -include ../makefile.targets

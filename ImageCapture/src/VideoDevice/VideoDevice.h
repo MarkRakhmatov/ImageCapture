@@ -7,7 +7,7 @@
 #include "MappedBuffer.h"
 #include "DescriptorHolder.h"
 #include "CallWrapper.h"
-#include "../ImageProcessing/JpegHelper.h"
+#include "JpegHelper.h"
 
 class VideoDevice
 {
