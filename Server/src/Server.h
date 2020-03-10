@@ -2,17 +2,17 @@
 #include <Command.h>
 #include <netinet/in.h>
 #include "DescriptorHolder.h"
-
 #include "ServerCommandHandler.h"
+#include "Socket.h"
 
 class Server
 {
 public:
   Server();
-  void Listen();
+  EConnectionStatus Listen();
 private:
-  int HandleCommand(DescriptorHolder& sock);
+  EConnectionStatus HandleCommand();
   DescriptorHolder mListener;
-  sockaddr_in mAddr;
+  sockaddr_in mAddr{};
   ServerCommandHandler mCommandHandler;
 };

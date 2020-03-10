@@ -2,18 +2,11 @@
 #include <memory>
 #include <vector>
 #include <string>
-#include "DescriptorHolder.h"
-
-enum class EReadStatus
-{
-  SUCCESS,
-  FAIL,
-
-};
+#include "Socket.h"
 
 class IOnCommand
 {
 public:
   virtual ~IOnCommand(){};
-  virtual EReadStatus Handle(DescriptorHolder& sock) = 0;
+  virtual void Handle(Socket& sock) = 0;
 };

@@ -17,35 +17,52 @@ Server::Server()
 
     if(bind(mListener.Get(), reinterpret_cast<sockaddr*>(&mAddr), sizeof(mAddr)) < 0)
     {
-        std::string message = "Failed to bind socked and address";
-        perror(message.c_str());
-        throw std::runtime_error{message};
+        std::cout << "Failed to bind socked and address" << std::endl;
     }
 }
 
-void
+EConnectionStatus
 Server::Listen()
 {
-  listen(mListener.Get(), 1);
+    if(listen(mListener.Get(), 1)<0)
+    {
+        std::cout << "Failed to start listening!" << std::endl;
+        return EConnectionStatus::FAIL;
+    }
 
-  while(1)
-  {
-      DescriptorHolder sock = accept(mListener.Get(), NULL, NULL);
-      if(sock.Get() < 0)
-      {
-          std::string message = "Failed to accept connection";
-          perror(message.c_str());
+    for(;;)
+    {
+        EConnectionStatus status = HandleCommand();
+        switch(status)
+        {
+        case EConnectionStatus::FAIL:
           continue;
-      }
-      auto status = mCommandHandler.Handle(sock);
-      std::cout << "Handle command with status: "
-          << static_cast<size_t>(status);
-  }
+        case EConnectionStatus::SHUTDOWN:
+          break;
+        default:
+          continue;
+        }
+    }
+  return EConnectionStatus::SHUTDOWN;
 }
 
-int
-Server::HandleCommand(DescriptorHolder& sock)
+EConnectionStatus
+Server::HandleCommand()
 {
-  mCommandHandler.Handle(sock);
-  return 1;
+  Socket sock{accept(mListener.Get(), NULL, NULL)};
+  for(;;)
+  {
+      EConnectionStatus status = mCommandHandler.Handle(sock);
+      switch(status)
+      {
+      case EConnectionStatus::FAIL:
+        break;
+      case EConnectionStatus::SHUTDOWN:
+        return status;
+      default:
+        continue;
+      }
+      break;
+  }
+  return EConnectionStatus::FAIL;
 }

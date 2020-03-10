@@ -7,12 +7,14 @@ src/OnProcessImageSrv.o: ../src/OnProcessImageSrv.cpp \
  /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/JpegHelper.h \
  /home/mark/workspace/libjpeg-turbo-2.0.4/turbojpeg.h \
  /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageBuffer.h \
+ /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/Utils.h \
  /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageProcessor.h \
  ../src/OnProcessImageSrv.h \
  /home/mark/workspace/ImageCapture/ClientServerCommon/src/Command.h \
- ../src/IOnCommandSrv.h ../src/ServerCommandHandler.h \
+ ../src/IOnCommandSrv.h \
+ /home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h \
  /home/mark/workspace/ImageCapture/ClientServerCommon/src/Response.h \
- ../src/CommandHandlerData.h
+ ../src/ServerCommandHandler.h ../src/CommandHandlerData.h
 
 /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/VideoDevice.h:
 
@@ -30,6 +32,8 @@ src/OnProcessImageSrv.o: ../src/OnProcessImageSrv.cpp \
 
 /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageBuffer.h:
 
+/home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/Utils.h:
+
 /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageProcessor.h:
 
 ../src/OnProcessImageSrv.h:
@@ -38,8 +42,10 @@ src/OnProcessImageSrv.o: ../src/OnProcessImageSrv.cpp \
 
 ../src/IOnCommandSrv.h:
 
-../src/ServerCommandHandler.h:
+/home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h:
 
 /home/mark/workspace/ImageCapture/ClientServerCommon/src/Response.h:
+
+../src/ServerCommandHandler.h:
 
 ../src/CommandHandlerData.h:

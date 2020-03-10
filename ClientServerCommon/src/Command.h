@@ -1,8 +1,8 @@
 #pragma once
-#include <cstddef>
-enum class ECommand : size_t
+#include <stdint.h>
+enum class ECommand : uint32_t
 {
-  SETUP_CAMERA,
+  //SETUP_CAMERA,
   PROCESS_IMAGE,
 
   SIZE

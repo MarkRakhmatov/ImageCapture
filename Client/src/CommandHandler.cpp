@@ -4,7 +4,7 @@
 //#include "OnSetup.h"
 #include "OnProcessImage.h"
 #include "CommandHandler.h"
-#include "CommandHandler.h"
+#include "Command.h"
 
 CommandHandler::CommandHandler()
 {
@@ -13,23 +13,25 @@ CommandHandler::CommandHandler()
   mCommandToHandler[static_cast<size_t>(ECommand::PROCESS_IMAGE)].reset(new OnProcessImage);
 }
 
-EResponse
-CommandHandler::Handle(DescriptorHolder& sock, ECommand command)
+void
+CommandHandler::Handle(Socket& sock, ECommand command)
 {
-  send(sock.Get(), &command, sizeof(command), 0);
-  EResponse status;
-  int bytesRead = read(sock.Get(), &status, sizeof(status));
+  auto sendRes = sock.Send(&command, sizeof(command));
+  if(!sendRes.second)
+  {
+      throw std::runtime_error("Failed to send command to server");
+  }
+  EConnectionStatus status;
+  auto res = sock.Read(&status, sizeof(status));
 
   std::cout <<
       "Operation status: " <<
       static_cast<size_t>(status) << std::endl;
 
-  if(bytesRead < 0 || status != EResponse::SUCCESS)
+  if(!res.second || status != EConnectionStatus::SUCCESS)
   {
-      printf("Failed to receive response from server");
-      return EResponse::FAIL;
+      throw std::runtime_error("Failed to receive response from server");
   }
-  mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
 
-  return EResponse::SUCCESS;
+  mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
 }

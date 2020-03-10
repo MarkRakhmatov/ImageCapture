@@ -4,15 +4,16 @@
 #include <netinet/in.h>
 #include "CommandHandler.h"
 #include "Response.h"
+#include "Socket.h"
 
 class Client
 {
 public:
   Client(const std::string& serverIp = "192.168.7.2");
-  EResponse Communicate();
+  EConnectionStatus Communicate();
 private:
   DescriptorHolder OpenConnection();
+  Socket mSocket;
   std::string mServerIp;
-  sockaddr_in mServAddr{};
   CommandHandler mCommandHandler;
 };

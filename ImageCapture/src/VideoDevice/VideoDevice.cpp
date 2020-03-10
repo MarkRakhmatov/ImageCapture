@@ -1,10 +1,3 @@
-/*
- * VideoDevice.cpp
- *
- *  Created on: Feb 18, 2020
- *      Author: mark
- */
-
 #include "VideoDevice.h"
 #include <thread>
 #include <chrono>
@@ -26,7 +19,6 @@
 #include <sstream>
 #include <pthread.h>
 #include <stdexcept>
-
 VideoDevice::VideoDevice(const std::string& deviceName)
 : mDeviceName(deviceName)
 {
@@ -63,7 +55,7 @@ VideoDevice::GetBuffer()
 void
 VideoDevice::OpenDevice(const std::string& deviceName)
 {
-  auto res = mCallHandler.WaitForAsyncCall<decltype(CheckOpenFile), CheckOpenFile>
+  auto res = WaitForAsyncCall<decltype(CheckOpenFile), CheckOpenFile>
 			  (open, mTimeout, deviceName.c_str(), O_RDWR | O_NONBLOCK);
   if(!res.second)
   {
@@ -113,7 +105,6 @@ VideoDevice::operator = (VideoDevice&& dev)
 {
   mDescriptor = std::move(dev.mDescriptor);
   mBuffer = std::move(dev.mBuffer);
-  mCallHandler = std::move(dev.mCallHandler);
   mDeviceName = std::move(dev.mDeviceName);
   return *this;
 }
@@ -121,7 +112,6 @@ VideoDevice::operator = (VideoDevice&& dev)
 VideoDevice::VideoDevice (VideoDevice&& dev)
 : mDescriptor(std::move(dev.mDescriptor))
 , mBuffer(std::move(dev.mBuffer))
-, mCallHandler(std::move(dev.mCallHandler))
 , mDeviceName(std::move(dev.mDeviceName))
 {}
 

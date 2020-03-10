@@ -2,8 +2,9 @@
 #include <vector>
 #include <array>
 #include <utility>
+#include <chrono>
 #include "Response.h"
-#include "DescriptorHolder.h"
+#include "Socket.h"
 #include "Command.h"
 #include "IOnCommand.h"
 
@@ -11,8 +12,8 @@ class CommandHandler
 {
 public:
   CommandHandler();
-  EResponse Handle(DescriptorHolder& sock, ECommand command);
+  void Handle(Socket& sock, ECommand command);
 private:
-  std::array<std::unique_ptr<IOnCommand>, static_cast<size_t>(ECommand::SIZE)>
-  mCommandToHandler{};
+  std::array<std::unique_ptr<IOnCommand>,
+              static_cast<size_t>(ECommand::SIZE)> mCommandToHandler{};
 };

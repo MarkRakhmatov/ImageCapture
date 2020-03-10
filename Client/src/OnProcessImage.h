@@ -5,5 +5,5 @@ class OnProcessImage : public IOnCommand
 {
 public:
   ~OnProcessImage() = default;
-  EReadStatus Handle(DescriptorHolder& sock);
+  void Handle(Socket& sock);
 };

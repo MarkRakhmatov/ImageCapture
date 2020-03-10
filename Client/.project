@@ -3,6 +3,7 @@
 	<name>Client</name>
 	<comment></comment>
 	<projects>
+		<project>ClientServerCommon</project>
 		<project>Utils</project>
 	</projects>
 	<buildSpec>

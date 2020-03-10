@@ -8,6 +8,7 @@
 #include "DescriptorHolder.h"
 #include "CallWrapper.h"
 #include "JpegHelper.h"
+#include "Utils.h"
 
 class VideoDevice
 {
@@ -24,7 +25,7 @@ private:
   template<typename T>
   std::pair<int, bool> AsyncIoctl(int request, T* pRequestData)
   {
-    return mCallHandler.WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
+    return WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
       (ioctl, mTimeout, mDescriptor.Get(), request, pRequestData);
   }
   void OpenDevice(const std::string& deviceName);
@@ -34,7 +35,6 @@ private:
 private:
   DescriptorHolder mDescriptor{};
   MappedBuffer mBuffer{};
-  CallWrapper mCallHandler;
   std::string mDeviceName;
 
   const std::chrono::milliseconds mTimeout{300};

@@ -1,5 +1,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <iostream>
 #include "ServerCommandHandler.h"
 #include "OnProcessImageSrv.h"
 
@@ -12,17 +13,23 @@ ServerCommandHandler::ServerCommandHandler()
   mCommandToHandler[static_cast<size_t>(ECommand::PROCESS_IMAGE)].reset({new OnProcessImageSrv});
 }
 
-EResponse
-ServerCommandHandler::Handle(DescriptorHolder& sock)
+EConnectionStatus
+ServerCommandHandler::Handle(Socket& sock)
 {
   ECommand command;
-  int bytesRead = recv(sock.Get(), &command, sizeof(command), 0);
-  if(bytesRead <= 0 || command >= ECommand::SIZE)
+  auto res = sock.Read(&command, sizeof(command));
+
+  if(!res.second)
   {
-      return EResponse::FAIL;
+      std::cout << "Failed to receive command!" << std::endl;
+      return EConnectionStatus::FAIL;
   }
-  mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
-  return EResponse::SUCCESS;
+  if(command >= ECommand::SIZE)
+  {
+      std::cout << "Unknown command!" << std::endl;
+      return EConnectionStatus::UNKNOWN_COMMAND;
+  }
+  return mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
 }
 
 CommandHandlerData&

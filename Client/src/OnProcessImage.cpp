@@ -1,22 +1,22 @@
 #include "OnProcessImage.h"
 #include <iostream>
+#include <unistd.h>
 
-EReadStatus OnProcessImage::Handle(DescriptorHolder& sock)
+void OnProcessImage::Handle(Socket& sock)
 {
-  int x = 0;
-  int y = 0;
-  // add wrapper to wait for response
-  int bytesRead = read(sock.Get(), &x, sizeof(x));
-  if(bytesRead < 0)
+  int32_t x = 0;
+  int32_t y = 0;
+
+  auto result = sock.Read(&x, sizeof(x));
+  if(!result.second)
   {
-      return EReadStatus::FAIL;
+      throw std::runtime_error("Failed to get server response!");
   }
-  bytesRead = read(sock.Get(), &y, sizeof(y));
-  if(bytesRead < 0)
+  result = sock.Read(&y, sizeof(y));
+  if(!result.second)
   {
-      return EReadStatus::FAIL;
+      throw std::runtime_error("Failed to get server response!");
   }
   std::cout << "x = " << x << std::endl
-      << "y = " << y << std::endl;
-  return EReadStatus::SUCCESS;
+        << "y = " << y << std::endl;
 }
