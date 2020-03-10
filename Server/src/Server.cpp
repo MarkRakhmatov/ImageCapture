@@ -10,7 +10,7 @@
 
 Server::Server()
   : mListener(socket(AF_INET, SOCK_STREAM, 0))
-  {
+{
     mAddr.sin_family = AF_INET;
     mAddr.sin_port = htons(3425);
     mAddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -56,6 +56,7 @@ Server::HandleCommand()
       switch(status)
       {
       case EConnectionStatus::FAIL:
+      case EConnectionStatus::UNKNOWN_COMMAND:
         break;
       case EConnectionStatus::SHUTDOWN:
         return status;

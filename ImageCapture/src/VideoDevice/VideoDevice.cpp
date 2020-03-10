@@ -60,7 +60,6 @@ VideoDevice::OpenDevice(const std::string& deviceName)
   if(!res.second)
   {
       perror("Failed to open device, OPEN");
-      throw std::runtime_error{"Failed to open device"};
   }
   mDescriptor = DescriptorHolder{std::move(res.first)};
 
@@ -69,7 +68,6 @@ VideoDevice::OpenDevice(const std::string& deviceName)
   if(!res.second)
   {
       perror("Failed to get device capabilities, VIDIOC_QUERYCAP");
-      std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
   }
   if((capability.capabilities & V4L2_CAP_VIDEO_CAPTURE) == 0)
   {

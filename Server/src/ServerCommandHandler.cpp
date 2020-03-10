@@ -29,7 +29,13 @@ ServerCommandHandler::Handle(Socket& sock)
       std::cout << "Unknown command!" << std::endl;
       return EConnectionStatus::UNKNOWN_COMMAND;
   }
-  return mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
+  auto& handler = mCommandToHandler[static_cast<size_t>(command)];
+  if(!handler)
+  {
+      std::cout << "Command handler is not presented!" << std::endl;
+      return EConnectionStatus::UNKNOWN_COMMAND;
+  }
+  return handler->Handle(sock);
 }
 
 CommandHandlerData&
