@@ -4,5 +4,5 @@
 
 USER_OBJS :=
 
-LIBS := -lImageCapture -lturbojpeg -lUtils
+LIBS := -lImageCapture -lturbojpeg
 

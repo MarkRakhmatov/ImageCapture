@@ -38,7 +38,7 @@ Server::Listen()
         case EConnectionStatus::FAIL:
           continue;
         case EConnectionStatus::SHUTDOWN:
-          break;
+          return status;
         default:
           continue;
         }

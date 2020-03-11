@@ -30,8 +30,8 @@ void VideoDevice::SetImageFormat()
 {
   v4l2_format imageFormat{0};
   imageFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  imageFormat.fmt.pix.width = 1920;
-  imageFormat.fmt.pix.height = 1080;
+  imageFormat.fmt.pix.width = 1280;
+  imageFormat.fmt.pix.height = 720;
 
   imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG;
   imageFormat.fmt.pix.field = V4L2_FIELD_NONE;

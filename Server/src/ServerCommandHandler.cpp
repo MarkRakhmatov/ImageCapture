@@ -29,6 +29,11 @@ ServerCommandHandler::Handle(Socket& sock)
       std::cout << "Unknown command!" << std::endl;
       return EConnectionStatus::UNKNOWN_COMMAND;
   }
+  if(command == ECommand::SHUTDOWN)
+  {
+      std::cout << "Shutdown server!" << std::endl;
+      return EConnectionStatus::SHUTDOWN;
+  }
   auto& handler = mCommandToHandler[static_cast<size_t>(command)];
   if(!handler)
   {

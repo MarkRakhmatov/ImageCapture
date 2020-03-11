@@ -21,6 +21,7 @@ CommandHandler::Handle(Socket& sock, ECommand command)
   {
       throw std::runtime_error("Failed to send command to server");
   }
+
   EConnectionStatus status;
   auto res = sock.Read(&status, sizeof(status));
 
