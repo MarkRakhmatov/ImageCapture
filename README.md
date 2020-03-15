@@ -2,16 +2,16 @@
 
 The main idea of this project is to create a video device remote control system.
 
-Client sends command to Server (in my case BeagleBone Black) to:
+The Client sends a command to the Server (in my case BeagleBone Black) to:
 
-      Capture image from connected to Server video device;
-      Process image (grayscale);
-      Get processing results (for now just hardcoded integers);
+    Capture image from connected to Server video device;
+    Process image (grayscale);
+    Get processing results (for now just hardcoded integers);
 
 Environment:
 
-    OS: Linux
-    IDE: Eclipse
+    OS: Ubuntu 16.04 LTS
+    IDE: Eclipse, Version: 2019-03 (4.11.0), Build id: 20190314-1200
 
 ImageCapture - static library that provides C++ wrapper over video device (VideoDevice class).
 
