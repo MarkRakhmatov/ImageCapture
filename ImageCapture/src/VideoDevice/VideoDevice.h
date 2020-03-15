@@ -29,7 +29,7 @@ private:
       (ioctl, mTimeout, mDescriptor.Get(), request, pRequestData);
   }
   void OpenDevice(const std::string& deviceName);
-  void SetImageFormat();
+  void SetImageFormat(int width = 1920, int height = 1080);
   void InitBuffer();
   void Reset();
 private:

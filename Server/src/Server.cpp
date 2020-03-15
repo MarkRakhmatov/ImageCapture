@@ -39,6 +39,8 @@ Server::Listen()
           continue;
         case EConnectionStatus::SHUTDOWN:
           return status;
+        case EConnectionStatus::DISCONNECT:
+          return status;
         default:
           continue;
         }
@@ -55,8 +57,7 @@ Server::HandleCommand()
       EConnectionStatus status = mCommandHandler.Handle(sock);
       switch(status)
       {
-      case EConnectionStatus::FAIL:
-      case EConnectionStatus::UNKNOWN_COMMAND:
+      case EConnectionStatus::DISCONNECT:
         break;
       case EConnectionStatus::SHUTDOWN:
         return status;

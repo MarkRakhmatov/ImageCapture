@@ -2,11 +2,14 @@
 #include <memory>
 #include <vector>
 #include <string>
+
 #include "Socket.h"
+#include "Response.h"
 
 class IOnCommand
 {
 public:
   virtual ~IOnCommand(){};
-  virtual void Handle(Socket& sock) = 0;
+  virtual EConnectionStatus Handle(Socket& sock) = 0;
 };
+

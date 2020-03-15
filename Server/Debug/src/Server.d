@@ -4,15 +4,7 @@ src/Server.o: ../src/Server.cpp ../src/Server.h \
  /home/mark/workspace/ImageCapture/Utils/src/ResourceHolder.h \
  ../src/ServerCommandHandler.h \
  /home/mark/workspace/ImageCapture/ClientServerCommon/src/Response.h \
- ../src/CommandHandlerData.h \
- /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/VideoDevice.h \
- /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/MappedBuffer.h \
- /home/mark/workspace/ImageCapture/Utils/src/CallWrapper.h \
- /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/JpegHelper.h \
- /home/mark/workspace/libjpeg-turbo-2.0.4/turbojpeg.h \
- /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageBuffer.h \
- /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/Utils.h \
- ../src/IOnCommandSrv.h \
+ /home/mark/workspace/ImageCapture/Server/CommandsHandling/IOnCommandSrv.h \
  /home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h
 
 ../src/Server.h:
@@ -27,22 +19,6 @@ src/Server.o: ../src/Server.cpp ../src/Server.h \
 
 /home/mark/workspace/ImageCapture/ClientServerCommon/src/Response.h:
 
-../src/CommandHandlerData.h:
-
-/home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/VideoDevice.h:
-
-/home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/MappedBuffer.h:
-
-/home/mark/workspace/ImageCapture/Utils/src/CallWrapper.h:
-
-/home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/JpegHelper.h:
-
-/home/mark/workspace/libjpeg-turbo-2.0.4/turbojpeg.h:
-
-/home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageBuffer.h:
-
-/home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/Utils.h:
-
-../src/IOnCommandSrv.h:
+/home/mark/workspace/ImageCapture/Server/CommandsHandling/IOnCommandSrv.h:
 
 /home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h:

@@ -1,4 +1,6 @@
 #include "Client.h"
+#include "Command.h"
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -8,7 +10,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <arpa/inet.h>
-#include "Command.h"
 
 Client::Client(const std::string& serverIp)
 : mSocket(serverIp)
@@ -19,17 +20,19 @@ EConnectionStatus Client::Communicate()
 {
   try
   {
-    int comm;
-    std::cout << "Enter command: ";
-    std::cin >> comm;
-    ECommand command = static_cast<ECommand>(comm);
-    if(command >= ECommand::SIZE)
+    for(;;)
     {
-        std::cout << "Invalid command!" <<std::endl;
-        return EConnectionStatus::FAIL;
+        auto status = mCommandHandler.Handle(mSocket);
+        if(status == EConnectionStatus::FAIL)
+        {
+            std::cout << "Communication fail! Trying to reconnect to server!" << std::endl;
+            break;
+        }
+        if(status == EConnectionStatus::DISCONNECT )
+        {
+            return status;
+        }
     }
-    mCommandHandler.Handle(mSocket, command);
-    return EConnectionStatus::SUCCESS;
   }
   catch(const std::exception& ex)
   {
@@ -37,3 +40,4 @@ EConnectionStatus Client::Communicate()
   }
   return EConnectionStatus::FAIL;
 }
+
