@@ -18,7 +18,7 @@
 #include <iostream>
 #include <sstream>
 #include <pthread.h>
-#include <stdexcept>
+
 VideoDevice::VideoDevice(const std::string& deviceName)
 : mDeviceName(deviceName)
 {
@@ -35,7 +35,7 @@ void VideoDevice::SetImageFormat(int width, int height)
 
   imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG;
   imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
-  // tell the device you are using this format
+
   auto res = AsyncIoctl(VIDIOC_S_FMT, &imageFormat);
   if(!res.second)
   {

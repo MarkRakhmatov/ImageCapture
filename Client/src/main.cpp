@@ -11,7 +11,7 @@ int main()
       if(status == EConnectionStatus::FAIL)
       {
           std::cout << "Communication fail!" << std::endl;
-          break;
+          continue;
       }
       if(status == EConnectionStatus::DISCONNECT)
       {

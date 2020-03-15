@@ -11,7 +11,7 @@ EConnectionStatus
 OnExitSrv::Handle(Socket& sock)
 {
   EConnectionStatus status;
-  auto res = sock.Send(&status, sizeof(status));
+  auto res = sock.SendData(&status);
   if(!res.second)
   {
       return EConnectionStatus::FAIL;

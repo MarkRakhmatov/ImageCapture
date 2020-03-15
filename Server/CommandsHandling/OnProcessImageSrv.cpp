@@ -30,7 +30,7 @@ OnProcessImageSrv::Handle(Socket& sock)
     {
       EConnectionStatus response = EConnectionStatus::FAIL;
       std::cout<<"Unsupported image processing command!"<<std::endl;
-      sock.Send(&response, sizeof(response));
+      sock.SendData(&response);
       break;
     }
     };
@@ -46,7 +46,7 @@ OnProcessImageSrv::SetupCamera(Socket& sock)
 {
   mDevice.HandleParameters();
   auto response = EConnectionStatus::SUCCESS;
-  auto res = sock.Send(&response, sizeof(response));
+  auto res = sock.SendData(&response);
   if(!res.second)
   {
       return EConnectionStatus::FAIL;
@@ -57,55 +57,50 @@ OnProcessImageSrv::SetupCamera(Socket& sock)
 EConnectionStatus
 OnProcessImageSrv::ProcessImage(Socket& sock)
 {
-    do
+  do
+  {
+    std::string fileName("Images/webcam_output_");
+    auto decomprBuffer = GetImageBufferFromDevice(mDevice);
+    EConnectionStatus response = EConnectionStatus::FAIL;
+    if(!decomprBuffer.GetWidth() || !decomprBuffer.GetHeight())
     {
-      std::string fileName("Images/webcam_output_");
-      auto decomprBuffer = GetImageBufferFromDevice(mDevice);
-      EConnectionStatus response = EConnectionStatus::FAIL;
-      if(!decomprBuffer.GetWidth() || !decomprBuffer.GetHeight())
-      {
-          std::cout<<"Failed to get buffer!"<<std::endl;
-          sock.Send(&response, sizeof(response));
-          break;
-      }
-      ImageProcessor::ToGrayScale(decomprBuffer);
-      auto compressedBuffer = JpegHelper::Compress(decomprBuffer);
-      response = EConnectionStatus::SUCCESS;
-      auto res = sock.Send(&response, sizeof(response));
-      if(!res.second)
-      {
-          break;
-      }
-      int32_t x = 73;
-      int32_t y = 27;
-      res = sock.Send(&x, sizeof(x));
-      if(!res.second)
-      {
-          break;
-      }
-      res = sock.Send(&y, sizeof(y));
-      if(!res.second)
-      {
-          break;
-      }
-
-      std::ostringstream ss;
-      ss << fileName << mImagesCount++ << ".jpeg";
-      JpegHelper::WriteBufferToFile(compressedBuffer, ss.str());
-
-      return EConnectionStatus::SUCCESS;
+        std::cout<<"Failed to get buffer!"<<std::endl;
+        sock.SendData(&response);
+        break;
     }
-    while(false);
+    ImageProcessor::ToGrayScale(decomprBuffer);
+    auto compressedBuffer = JpegHelper::Compress(decomprBuffer);
+    response = EConnectionStatus::SUCCESS;
+    auto res = sock.SendData(&response);
+    if(!res.second)
+    {
+        break;
+    }
+    int32_t x = 73;
+    int32_t y = 27;
+    res = sock.SendData(&x, &y);
+    if(!res.second)
+    {
+        break;
+    }
 
-    std::cout<<"Failed to send response!"<<std::endl;
-    return EConnectionStatus::FAIL;
+    std::ostringstream ss;
+    ss << fileName << mImagesCount++ << ".jpeg";
+    JpegHelper::WriteBufferToFile(compressedBuffer, ss.str());
+
+    return EConnectionStatus::SUCCESS;
+  }
+  while(false);
+
+  std::cout<<"Failed to send response!"<<std::endl;
+  return EConnectionStatus::FAIL;
 }
 
 EProcessImage
 OnProcessImageSrv::ReadCommand(Socket& sock)
 {
   EProcessImage command = EProcessImage::EMPTY_COMMAND;
-  auto res = sock.Read(&command, sizeof(command));
+  auto res = sock.ReadData(&command);
   if(!res.second)
   {
       return EProcessImage::EMPTY_COMMAND;

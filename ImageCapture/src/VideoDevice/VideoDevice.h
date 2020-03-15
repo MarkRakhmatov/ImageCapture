@@ -37,7 +37,7 @@ private:
   MappedBuffer mBuffer{};
   std::string mDeviceName;
 
-  const std::chrono::milliseconds mTimeout{300};
+  const std::chrono::milliseconds mTimeout{500};
 };
 
 ImageBuffer<unsigned char> GetImageBufferFromDevice(VideoDevice& device);

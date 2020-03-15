@@ -66,45 +66,13 @@ public:
     return {bytesCount, true};
   }
 
-  template<typename TArg>
-  std::pair<int, bool> SendData(TArg arg1)
-  {
-    static_assert(std::is_pointer<TArg>::value == true, "Argument must be pointer type!");
-    auto res = SendPODArg(arg1);
-    if(!res.second)
-    {
-      return res;
-    }
-
-    return res;
-  }
-
-  template<typename TArg, typename ... TArgs>
-  std::pair<int, bool> ReadData(TArg arg1, TArgs ... args)
-  {
-    static_assert(std::is_pointer<TArg>::value == true, "Argument must be pointer type!");
-    auto res = ReadPODArg(arg1);
-    if(!res.second)
-    {
-      return res;
-    }
-    return ReadData(args...);
-  }
-
-private:
-  template<typename T>
-  std::pair<int, bool> SendPODArg(T arg)
-  {
-    static_assert(std::is_pointer<T>::value == true, "Argument must be pointer type!");
-    auto res = Send(arg, sizeof(*arg));
-    return res.second;
-  }
-
   template<typename TArg, typename ... TArgs>
   std::pair<int, bool> SendData(TArg arg1, TArgs ... args)
   {
     static_assert(std::is_pointer<TArg>::value == true, "Argument must be pointer type!");
-    auto res = SendPODArg(arg1);
+    static_assert(std::is_pod<TArg>::value == true,
+            "Argument must be pointer to POD type!");
+    auto res = Send(arg1, sizeof(*arg1));
     if(!res.second)
     {
       return res;
@@ -112,22 +80,51 @@ private:
     return SendData(args...);
   }
 
-  template<typename T>
-  std::pair<int, bool> ReadPODArg(T arg)
+  template<typename TArg, typename ... TArgs>
+  std::pair<int, bool> ReadData(TArg arg1, TArgs ... args)
   {
-    static_assert(std::is_pointer<T>::value == true, "Argument must be pointer type!");
-    auto res = Read(arg, sizeof(*arg));
+    static_assert(std::is_pointer<TArg>::value == true, "Argument must be pointer type!");
+
+    auto res = Read(arg1, sizeof(*arg1));
+    if(!res.second)
+    {
+      return res;
+    }
+    return ReadData(args...);
+  }
+
+  template<typename TArg>
+  std::pair<int, bool> SendData(TArg arg)
+  {
+    static_assert(std::is_pointer<TArg>::value == true,
+        "The argument must be a pointer type!");
+
+    using ArgType = typename std::remove_pointer<TArg>::type;
+
+    static_assert(std::is_pod<ArgType>::value == true,
+        "The argument must be a pointer to a POD type!");
+    static_assert(std::is_pointer<ArgType>::value  == false,
+        "The argument must be a pointer to a POD type, but not a pointer to a pointer!!!");
+
+    auto res = Send(arg, sizeof(*arg));
+
     return res;
   }
 
   template<typename TArg>
-  std::pair<int, bool> ReadData(TArg arg1)
+  std::pair<int, bool> ReadData(TArg arg)
   {
     static_assert(std::is_pointer<TArg>::value == true, "Argument must be pointer type!");
-    auto res = ReadPODArg(arg1);
+
+    using ArgType = typename std::remove_pointer<TArg>::type;
+
+    static_assert(std::is_pod<ArgType>::value == true,
+        "Argument must be pointer to POD type!");
+    static_assert(std::is_pointer<ArgType>::value  == false,
+        "Argument must be pointer to POD type, but not pointer to pointer!!!");
+    auto res = Read(arg, sizeof(*arg));
     return res;
   }
-
 private:
   DescriptorHolder mDescriptor;
   sockaddr_in mServAddr{};

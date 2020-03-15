@@ -1,5 +1,4 @@
 #include "OnServerShutdown.h"
-#include "Helper.h"
 
 EConnectionStatus
 OnServerShutdown::Handle(Socket& sock)
@@ -10,7 +9,8 @@ OnServerShutdown::Handle(Socket& sock)
 EConnectionStatus
 OnServerShutdown::GetResponse(Socket& sock)
 {
-  EConnectionStatus status = ReadStatus(sock);
+  EConnectionStatus status = EConnectionStatus::FAIL;
+  sock.ReadData(&status);
   if(status != EConnectionStatus::DISCONNECT)
   {
       std::cout << "Failed to shutdown server!" <<std::endl;

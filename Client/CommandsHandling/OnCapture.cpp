@@ -1,6 +1,5 @@
 #include "OnCapture.h"
 #include "Command.h"
-#include "Helper.h"
 
 EConnectionStatus
 OnCapture::Handle(Socket& sock)
@@ -18,7 +17,7 @@ OnCapture::SendRequest(Socket& sock)
 {
   EProcessImage command = EProcessImage::PROCESS_IMAGE;
 
-  auto res = sock.Send(&command, sizeof(command));
+  auto res = sock.SendData(&command);
   if(!res.second)
   {
       return EConnectionStatus::FAIL;
@@ -29,7 +28,8 @@ OnCapture::SendRequest(Socket& sock)
 EConnectionStatus
 OnCapture::GetResponse(Socket& sock)
 {
-  EConnectionStatus status = ReadStatus(sock);
+  EConnectionStatus status = EConnectionStatus::FAIL;
+  sock.ReadData(&status);
 
   if(status == EConnectionStatus::FAIL)
   {
@@ -38,6 +38,7 @@ OnCapture::GetResponse(Socket& sock)
 
   int32_t x = 0;
   int32_t y = 0;
+
   auto res = sock.ReadData(&x, &y);
   if(!res.second)
   {

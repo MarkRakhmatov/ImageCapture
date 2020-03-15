@@ -18,7 +18,7 @@ EConnectionStatus
 ServerCommandHandler::Handle(Socket& sock)
 {
   ECommand command;
-  auto res = sock.Read(&command, sizeof(command));
+  auto res = sock.ReadData(&command);
 
   if(!res.second)
   {

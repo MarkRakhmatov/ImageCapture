@@ -1,5 +1,4 @@
 #include "OnExit.h"
-#include "Helper.h"
 
 EConnectionStatus
 OnExit::Handle(Socket& sock)
@@ -10,8 +9,12 @@ OnExit::Handle(Socket& sock)
 EConnectionStatus
 OnExit::GetResponse(Socket& sock)
 {
-  ReadStatus(sock);
-
+  EConnectionStatus status = EConnectionStatus::FAIL;
+  sock.ReadData(&status);
+  if(status == EConnectionStatus::FAIL)
+  {
+      std::cout << "Failed to read status. Something wrong with connection!" << std::endl;
+  }
   std::cout << "Closing client!" << std::endl;
   return EConnectionStatus::DISCONNECT;
 }
