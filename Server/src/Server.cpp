@@ -18,6 +18,7 @@ Server::Server()
     if(bind(mListener.Get(), reinterpret_cast<sockaddr*>(&mAddr), sizeof(mAddr)) < 0)
     {
         std::cout << "Failed to bind socked and address" << std::endl;
+        mListener.Reset();
     }
 }
 

@@ -68,7 +68,7 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         sock.SendData(&response);
         break;
     }
-    ImageProcessor::ToGrayScale(decomprBuffer);
+    ImageProcessor::ProcessByBlocks(decomprBuffer, &ImageProcessor::TestFilter);
     auto compressedBuffer = JpegHelper::Compress(decomprBuffer);
     response = EConnectionStatus::SUCCESS;
     auto res = sock.SendData(&response);
