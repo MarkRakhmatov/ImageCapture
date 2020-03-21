@@ -4,7 +4,6 @@
 #include <sys/socket.h>
 #include <iostream>
 #include "VideoDevice/VideoDevice.h"
-#include <sstream>
 #include "ImageProcessing/JpegHelper.h"
 #include "ImageProcessing/ImageProcessor.h"
 
@@ -59,7 +58,7 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
 {
   do
   {
-    std::string fileName("Images/webcam_output_");
+    std::string fileName("Images/img_");
     auto decomprBuffer = GetImageBufferFromDevice(mDevice);
     EConnectionStatus response = EConnectionStatus::FAIL;
     if(!decomprBuffer.GetWidth() || !decomprBuffer.GetHeight())
@@ -68,8 +67,24 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         sock.SendData(&response);
         break;
     }
-    ImageProcessor::ProcessByBlocks(decomprBuffer, &ImageProcessor::TestFilter);
-    auto compressedBuffer = JpegHelper::Compress(decomprBuffer);
+
+    ;
+    constexpr auto kerSize = 5;
+    ConvHandler<unsigned char, 1,float,kerSize> convHandler
+    (
+            {
+              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f},
+              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f},
+              std::array<float, kerSize>{ 0.0f, 0.0f,0.0f,0.0f,0.0f},
+              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f},
+              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f}
+            }
+    );
+    auto processedBuff =
+        ImageProcessor::Convolution(
+            decomprBuffer,
+            convHandler);
+    auto compressedBuffer = JpegHelper::Compress<1>(processedBuff);
     response = EConnectionStatus::SUCCESS;
     auto res = sock.SendData(&response);
     if(!res.second)
@@ -84,9 +99,7 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         break;
     }
 
-    std::ostringstream ss;
-    ss << fileName << mImagesCount++ << ".jpeg";
-    JpegHelper::WriteBufferToFile(compressedBuffer, ss.str());
+    JpegHelper::WriteBufferToFile(compressedBuffer, fileName);
 
     return EConnectionStatus::SUCCESS;
   }

@@ -9,10 +9,16 @@ template<typename T, size_t PixelSize = 3>
 class Pixel
 {
 public:
-  Pixel(T* dataPtr)
+  Pixel(T dataPtr)
   : data(dataPtr)
   {}
-  T& operator[](size_t index)
+  typename std::remove_pointer<T>::type& operator[](size_t index)
+  {
+    assert(index < PixelSize);
+    return data[index];
+  }
+
+  const typename std::remove_pointer<T>::type& operator[](size_t index) const
   {
     assert(index < PixelSize);
     return data[index];
@@ -22,7 +28,7 @@ public:
     return PixelSize;
   }
 private:
-  T* data;
+  T data;
 };
 
 template<typename T, size_t PixelSize = 3>
@@ -30,9 +36,16 @@ class ImageBuffer
 {
 public:
   ImageBuffer() = default;
-  ~ImageBuffer() = default;
   ImageBuffer(ImageBuffer&) = delete;
   ImageBuffer& operator=(ImageBuffer&) = delete;
+
+  ImageBuffer(int width, int height)
+  : mWidth(width)
+  , mHeight(height)
+  , mBuffer(mHeight*mWidth*PixelSize, T{})
+  {
+  }
+
   ImageBuffer(ImageBuffer&& otherBuffer)
   : mWidth(otherBuffer.mWidth)
   , mHeight(otherBuffer.mHeight)
@@ -48,12 +61,8 @@ public:
     mBuffer = std::move(otherBuffer.mBuffer);
     return *this;
   }
-  ImageBuffer(int width, int height)
-  : mWidth(width)
-  , mHeight(height)
-  , mBuffer(mHeight*mWidth*PixelSize, T{})
-  {
-  }
+  ~ImageBuffer() = default;
+
   size_t GetWidth() const
   {
     return mWidth;
@@ -66,11 +75,19 @@ public:
   {
     return PixelSize;
   }
-  Pixel<T, PixelSize> GetElement(size_t i, size_t j)
+
+  Pixel<T*, PixelSize> GetElement(size_t i, size_t j)
   {
     auto index = (i*mWidth + j)*PixelSize;
-    return Pixel<T, PixelSize>(&mBuffer[index]);
+    return Pixel<T*, PixelSize>(&mBuffer[index]);
   }
+
+  Pixel<const T*, PixelSize> GetElement(size_t i, size_t j) const
+  {
+    auto index = (i*mWidth + j)*PixelSize;
+    return Pixel<const T*, PixelSize>(&mBuffer[index]);
+  }
+
   T* Get()
   {
     return mBuffer.data();

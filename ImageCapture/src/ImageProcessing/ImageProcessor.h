@@ -1,79 +1,67 @@
 #pragma once
 #include "ImageBuffer.h"
 
-template <typename T, size_t PixelSize = 3>
-using BlockProcessorFunc = void (*) (ImageBuffer<T, PixelSize>& buffer, size_t& i, size_t& j);
+
+template <size_t KernelSize = 3,
+	  typename T = int32_t>
+using ConvKernel = std::array<std::array<T, KernelSize>, KernelSize>;
+
+template <size_t Count,
+	size_t KernelSize = 3,
+	typename T = int32_t>
+using ConvKernels = std::array<ConvKernel<KernelSize, T>, Count>;
+
+
+template <typename T,
+	  size_t PixelSize,
+	  typename KernelType,
+	  size_t KernelSize>
+struct ConvHandler
+{
+  ConvHandler(ConvKernel<KernelSize, KernelType> kernels)
+  : mKernel(std::move(kernels))
+  {}
+
+  void operator()(ImageBuffer<T, PixelSize>& buffer,
+      ImageBuffer<T, PixelSize>& resultBuffer, size_t& i, size_t& j)
+  {
+    int32_t resultPix{};
+    for(size_t l = 0; l < KernelSize; ++l)
+    {
+	for(size_t m = 0; m < KernelSize; ++m)
+	{
+	    auto origPix = buffer.GetElement(i+l, j+m);
+	    auto kerK = mKernel[l][m];
+	    resultPix += origPix[0]*kerK;
+	}
+    }
+
+    auto pix = resultBuffer.GetElement(
+	i + (KernelSize - 1)/2,
+	j + (KernelSize - 1)/2);
+
+    pix[0] = resultPix;
+  }
+private:
+  ConvKernel<KernelSize, KernelType> mKernel;
+};
 
 class ImageProcessor
 {
 public:
-
-  template <typename T, size_t PixelSize = 3>
-  static void GrayScale(ImageBuffer<T, PixelSize>& buffer, size_t& i, size_t& j)
-  {
-    auto pixel = buffer.GetElement(i, j);
-    auto& red = pixel[0];
-    auto& green = pixel[1];
-    auto& blue = pixel[2];
-    auto avarage = (red + green + blue)/3;
-    red = avarage;
-    blue = avarage;
-    green = avarage;
-  }
-
-  template <typename T, size_t PixelSize = 3>
-  static void TestFilter(ImageBuffer<T, PixelSize>& buffer, size_t& i, size_t& j)
-  {
-    const size_t blockSize = 10;
-    size_t accumulatorR = 0;
-    size_t accumulatorG = 0;
-    size_t accumulatorB = 0;
-    for(size_t k = i; (k < (i + blockSize)) && k < buffer.GetHeight(); ++k)
-    {
-	for(size_t l = j; (l < (j + blockSize)) && l < buffer.GetWidth(); ++l)
-	{
-	    auto pixel = buffer.GetElement(k, l);
-	    auto& red = pixel[0];
-	    auto& green = pixel[1];
-	    auto& blue = pixel[2];
-	    accumulatorR += red;
-	    accumulatorG += green;
-	    accumulatorB += blue;
-	}
-    }
-
-    for(size_t k = i; (k < (i + blockSize)) && k < buffer.GetHeight(); ++k)
-    {
-	for(size_t l = j; (l < (j + blockSize)) && l < buffer.GetWidth(); ++l)
-	{
-	    auto pixel = buffer.GetElement(k, l);
-	    auto& red = pixel[0];
-	    auto& green = pixel[1];
-	    auto& blue = pixel[2];
-	    red = accumulatorR / (blockSize*blockSize);
-	    green = accumulatorG / (blockSize*blockSize);
-	    blue = accumulatorB / (blockSize*blockSize);
-	}
-    }
-    auto step = blockSize-blockSize/3;
-    if(j > buffer.GetWidth() - blockSize - 1)
-    {
-	i += step;
-    }
-    j+= step;
-  }
-
-  template <typename T, size_t PixelSize = 3>
-  static void ProcessByBlocks(ImageBuffer<T, PixelSize>& buffer, BlockProcessorFunc<T, PixelSize> func)
+  template <typename T, size_t PixelSize = 1, typename ImageProcFunc>
+  static ImageBuffer<T, PixelSize> Convolution(ImageBuffer<T, PixelSize>& buffer, ImageProcFunc imgProcessor)
   {
     auto width = buffer.GetWidth();
     auto height = buffer.GetHeight();
+    ImageBuffer<T, PixelSize> resultBuffer(width, height);
     for(size_t i = 0; i < height; ++i)
     {
 	for(size_t j = 0; j < width; ++j)
 	{
-	    func(buffer, i, j);
+	    imgProcessor(buffer, resultBuffer, i, j);
 	}
     }
+    return resultBuffer;
   }
 };
