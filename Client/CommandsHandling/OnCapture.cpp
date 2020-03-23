@@ -1,5 +1,6 @@
 #include "OnCapture.h"
 #include "Command.h"
+#include <fstream>
 
 EConnectionStatus
 OnCapture::Handle(Socket& sock)
@@ -12,6 +13,37 @@ OnCapture::Handle(Socket& sock)
   return GetResponse(sock);
 }
 
+void SendFilteringSettings(Socket& sock)
+{
+  std::string settingsFileName("settings.txt");
+  std::ifstream settings(settingsFileName);
+  std::string settingsStr;
+  std::string temp;
+  while(settings >> temp)
+  {
+      settingsStr += " " + temp;
+  }
+  settings.close();
+  uint32_t size{static_cast<uint32_t>(settingsStr.size())};
+  sock.SendData(&size);
+  if(!size)
+  {
+      std::cout << "Failed to get settings! Use default settings."<< std::endl;
+      return;
+  }
+  std::pair<int,bool> res{};
+  for(size_t i = 0; i < size; ++i)
+  {
+      res = sock.SendData(&settingsStr[i]);
+      if(!res.second)
+      {
+          std::cout << "Failed to send settings!"<< std::endl;
+          return;
+      }
+  }
+
+}
+
 EConnectionStatus
 OnCapture::SendRequest(Socket& sock)
 {
@@ -22,6 +54,7 @@ OnCapture::SendRequest(Socket& sock)
   {
       return EConnectionStatus::FAIL;
   }
+  SendFilteringSettings(sock);
   return EConnectionStatus::SUCCESS;
 }
 

@@ -40,4 +40,4 @@ private:
   const std::chrono::milliseconds mTimeout{500};
 };
 
-ImageBuffer<unsigned char, 1> GetImageBufferFromDevice(VideoDevice& device);
+ImageBuffer<unsigned char> GetImageBufferFromDevice(VideoDevice& device);

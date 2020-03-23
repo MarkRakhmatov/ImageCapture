@@ -4,12 +4,10 @@
 #include "ServerCommandHandler.h"
 
 #include "OnShutdownSrv.h"
-#include "OnExitSrv.h"
 #include "OnProcessImageSrv.h"
 
 ServerCommandHandler::ServerCommandHandler()
 {
-  mCommandToHandler[static_cast<size_t>(ECommand::EXIT)].reset({new OnExitSrv});
   mCommandToHandler[static_cast<size_t>(ECommand::SERVER_SHUTDOWN)].reset({new OnShutdownSrv});
   mCommandToHandler[static_cast<size_t>(ECommand::PROCESS_IMAGE)].reset({new OnProcessImageSrv});
 }

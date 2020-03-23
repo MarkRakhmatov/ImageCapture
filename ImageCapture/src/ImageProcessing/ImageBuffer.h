@@ -1,37 +1,26 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include <array>
+#include <unordered_map>
 #include <utility>
 #include <cassert>
 
-template<typename T, size_t PixelSize = 3>
-class Pixel
+enum class EPixelType
 {
-public:
-  Pixel(T dataPtr)
-  : data(dataPtr)
-  {}
-  typename std::remove_pointer<T>::type& operator[](size_t index)
-  {
-    assert(index < PixelSize);
-    return data[index];
-  }
+  GRAY_SCALE,
+  RGB,
 
-  const typename std::remove_pointer<T>::type& operator[](size_t index) const
-  {
-    assert(index < PixelSize);
-    return data[index];
-  }
-  constexpr size_t Size() const
-  {
-    return PixelSize;
-  }
-private:
-  T data;
+  SIZE
 };
-
-template<typename T, size_t PixelSize = 3>
+struct EnumClassHash
+{
+    template <typename T>
+    std::size_t operator()(T t) const
+    {
+        return static_cast<std::size_t>(t);
+    }
+};
+template<typename T>
 class ImageBuffer
 {
 public:
@@ -39,28 +28,33 @@ public:
   ImageBuffer(ImageBuffer&) = delete;
   ImageBuffer& operator=(ImageBuffer&) = delete;
 
-  ImageBuffer(int width, int height)
+  ImageBuffer(int width, int height, EPixelType pixelType)
   : mWidth(width)
   , mHeight(height)
-  , mBuffer(mHeight*mWidth*PixelSize, T{})
+  , mPixelType(pixelType)
+  , mBuffer(mHeight*mWidth*GetPixelSize(), T{})
   {
   }
 
   ImageBuffer(ImageBuffer&& otherBuffer)
   : mWidth(otherBuffer.mWidth)
   , mHeight(otherBuffer.mHeight)
+  , mPixelType(otherBuffer.mPixelType)
   , mBuffer(std::move(otherBuffer.mBuffer))
   {
     otherBuffer.mWidth = 0;
     otherBuffer.mHeight = 0;
   }
+
   ImageBuffer& operator=(ImageBuffer&& otherBuffer)
   {
     std::swap(mWidth, otherBuffer.mWidth);
     std::swap(mHeight, otherBuffer.mHeight);
+    std::swap(mPixelType, otherBuffer.mPixelType);
     mBuffer = std::move(otherBuffer.mBuffer);
     return *this;
   }
+
   ~ImageBuffer() = default;
 
   size_t GetWidth() const
@@ -71,21 +65,27 @@ public:
   {
     return mHeight;
   }
-  constexpr size_t GetPixelSize() const
+
+  size_t GetPixelSize() const
   {
-    return PixelSize;
+    return pixelTypeToSize.at(mPixelType);
+  }
+  EPixelType GetPixelType() const
+  {
+    return mPixelType;
   }
 
-  Pixel<T*, PixelSize> GetElement(size_t i, size_t j)
+
+  T* GetElement(size_t i, size_t j)
   {
-    auto index = (i*mWidth + j)*PixelSize;
-    return Pixel<T*, PixelSize>(&mBuffer[index]);
+    auto index = (i*mWidth + j)*GetPixelSize();
+    return &mBuffer[index];
   }
 
-  Pixel<const T*, PixelSize> GetElement(size_t i, size_t j) const
+  const T* GetElement(size_t i, size_t j) const
   {
-    auto index = (i*mWidth + j)*PixelSize;
-    return Pixel<const T*, PixelSize>(&mBuffer[index]);
+    auto index = (i*mWidth + j)*GetPixelSize();
+    return &mBuffer[index];
   }
 
   T* Get()
@@ -100,5 +100,10 @@ public:
 private:
   size_t mWidth{0};
   size_t mHeight{0};
+  std::unordered_map<EPixelType, size_t, EnumClassHash>
+	    pixelTypeToSize{
+	      {EPixelType::GRAY_SCALE, 1},
+	      {EPixelType::RGB, 3}};
+  EPixelType mPixelType{EPixelType::GRAY_SCALE};
   std::vector<T> mBuffer;
 };

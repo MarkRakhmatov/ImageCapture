@@ -13,7 +13,7 @@ int main()
           std::cout << "Communication fail!" << std::endl;
           continue;
       }
-      if(status == EConnectionStatus::DISCONNECT)
+      if(status == EConnectionStatus::SHUTDOWN)
       {
           return 0;
       }

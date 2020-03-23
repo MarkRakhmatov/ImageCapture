@@ -7,13 +7,15 @@
 
 using JpegHolder = ResourceHolder<tjhandle, decltype(tjDestroy), tjDestroy>;
 
+void ConvertImgFormat(const ImageBuffer<unsigned char>& buffer, TJSAMP& samp, TJPF& pixFormat);
+
+
 class JpegHelper
 {
 public:
-  template<size_t pixSize = 1>
-  static ImageBuffer<unsigned char, pixSize>
+  static ImageBuffer<unsigned char>
   Decompress(unsigned char* jpegBuff, int jpegSize,
-  int pixelFormat = TJPF_GRAY)
+	     TJPF pixelFormat = TJPF_GRAY)
   {
     JpegHolder jHandle{tjInitDecompress()};
 
@@ -26,24 +28,26 @@ public:
     res = tjDecompressHeader3(jHandle.Get(), jpegBuff, jpegSize, &width, &height, &jpegSubsamp, &jpegColorspace);
     if( res == -1)
     {
-        return ImageBuffer<unsigned char, pixSize>{};
+        return {};
         std::cout << "Failed to decompress JPEG: "<< tjGetErrorStr2(jHandle.Get());
     }
+    auto pixSize = tjPixelSize[pixelFormat];
     int pitch = pixSize * width;
-    ImageBuffer<unsigned char, pixSize> buffer(width, height);
+    ImageBuffer<unsigned char> buffer(width, height, EPixelType::GRAY_SCALE);
     res = tjDecompress2(jHandle.Get(), jpegBuff, jpegSize, buffer.Get(), width, pitch, height, pixelFormat, flags);
     return buffer;
   }
-  template<size_t pixSize = 1>
+
   static std::vector<unsigned char>
-  Compress(const ImageBuffer<unsigned char, pixSize>& buffer,
-	   int pixelFormat = TJPF_GRAY,
+  Compress(const ImageBuffer<unsigned char>& buffer,
 	   int jpegQual = 75)
   {
     JpegHolder jHandle{tjInitCompress()};
-    int jpegSubsamp = TJSAMP_GRAY;
-    int flags = 1;
-    int pitch = tjPixelSize[pixelFormat] * buffer.GetWidth();
+    TJSAMP jpegSubsamp{};
+    TJPF pixelFormat{};
+    ConvertImgFormat(buffer, jpegSubsamp, pixelFormat);
+    int flags = TJFLAG_STOPONWARNING;
+    int pitch = buffer.GetPixelSize() * buffer.GetWidth();
     std::vector<unsigned char> compressedImage(buffer.GetWidth()*buffer.GetHeight(), '\0');
     unsigned long jpegCompSize = compressedImage.size();
     unsigned char* jpegBuf = compressedImage.data();

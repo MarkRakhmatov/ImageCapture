@@ -7,7 +7,6 @@ src/ServerCommandHandler.o: ../src/ServerCommandHandler.cpp \
  /home/mark/workspace/ImageCapture/Server/CommandsHandling/IOnCommandSrv.h \
  /home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h \
  /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnShutdownSrv.h \
- /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnExitSrv.h \
  /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnProcessImageSrv.h \
  /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/VideoDevice.h \
  /home/mark/workspace/ImageCapture/ImageCapture/src/VideoDevice/MappedBuffer.h \
@@ -32,8 +31,6 @@ src/ServerCommandHandler.o: ../src/ServerCommandHandler.cpp \
 /home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h:
 
 /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnShutdownSrv.h:
-
-/home/mark/workspace/ImageCapture/Server/CommandsHandling/OnExitSrv.h:
 
 /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnProcessImageSrv.h:
 

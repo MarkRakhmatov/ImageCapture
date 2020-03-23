@@ -32,6 +32,10 @@ EConnectionStatus Client::Communicate()
         {
             return status;
         }
+        if(status == EConnectionStatus::SHUTDOWN )
+        {
+            return status;
+        }
     }
   }
   catch(const std::exception& ex)

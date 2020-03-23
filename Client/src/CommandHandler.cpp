@@ -42,11 +42,5 @@ CommandHandler::Handle(Socket& sock)
       return EConnectionStatus::FAIL;
   }
 
-  auto sendRes = sock.SendData(&command);
-  if(!sendRes.second)
-  {
-      throw std::runtime_error("Failed to send command to server");
-  }
-
   return mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
 }

@@ -20,6 +20,7 @@ public:
     if(descriptor < 0)
     {
         std::string message = "Failed to accept connection";
+        mDescriptor.Reset();
     }
   }
   Socket(const std::string& serverIp)
@@ -31,14 +32,22 @@ public:
     if(inet_pton(AF_INET, serverIp.data(), &mServAddr.sin_addr)<=0)
     {
         std::cout<<"Failed to convert server ip to binary format!"<<std::endl;
+        mDescriptor.Reset();
     }
 
     if(connect(mDescriptor.Get(), reinterpret_cast<sockaddr*>(&mServAddr), sizeof(mServAddr)) < 0)
     {
         std::cout<<"Failed to open connection!"<<std::endl;
+        mDescriptor.Reset();
     }
   }
-
+  ~Socket()
+  {
+    if(mDescriptor.Get() && 0!= shutdown(mDescriptor.Get(), SHUT_RDWR))
+    {
+        std::cout<<"Failed to shutdown socket!"<<std::endl;;
+    }
+  }
   int Get()
   {
     return mDescriptor.Get();

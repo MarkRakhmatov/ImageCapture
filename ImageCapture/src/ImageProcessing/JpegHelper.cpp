@@ -35,3 +35,17 @@ JpegHelper::WriteBufferToFile (const std::vector<unsigned char>& buf,
   outFile.write(reinterpret_cast<const char*>(buf.data()), buf.size());
   return 0;
 }
+
+void
+ConvertImgFormat (const ImageBuffer<unsigned char>& buffer, TJSAMP& samp,
+		  TJPF& pixFormat)
+{
+  const std::unordered_map<EPixelType, std::pair<TJPF, TJSAMP>, EnumClassHash>
+	buffFormatToJpeg
+	{
+	  {EPixelType::GRAY_SCALE, {TJPF::TJPF_GRAY, TJSAMP::TJSAMP_GRAY}},
+	  {EPixelType::RGB, {TJPF::TJPF_RGB, TJSAMP::TJSAMP_444}}
+	};
+  pixFormat = buffFormatToJpeg.at(buffer.GetPixelType()).first;
+  samp = buffFormatToJpeg.at(buffer.GetPixelType()).second;
+}

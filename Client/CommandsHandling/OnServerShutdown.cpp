@@ -1,8 +1,15 @@
 #include "OnServerShutdown.h"
+#include "Command.h"
 
 EConnectionStatus
 OnServerShutdown::Handle(Socket& sock)
 {
+  auto comm = ECommand::SERVER_SHUTDOWN;
+  auto sendRes = sock.SendData(&comm);
+  if(!sendRes.second)
+  {
+      return EConnectionStatus::FAIL;
+  }
   return GetResponse(sock);
 }
 

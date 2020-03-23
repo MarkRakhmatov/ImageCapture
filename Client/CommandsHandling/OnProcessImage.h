@@ -1,7 +1,5 @@
 #pragma once
 #include "IOnCommand.h"
-#include "OnCapture.h"
-#include "OnSetup.h"
 
 #include <unordered_map>
 #include <memory>

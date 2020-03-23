@@ -1,34 +1,47 @@
 #pragma once
 #include "ImageBuffer.h"
+#include <limits>
 
 
-template <size_t KernelSize = 3,
-	  typename T = int32_t>
-using ConvKernel = std::array<std::array<T, KernelSize>, KernelSize>;
+using KernelType = float;
+using ConvKernel = std::vector<std::vector<KernelType>>;
 
-template <size_t Count,
-	size_t KernelSize = 3,
-	typename T = int32_t>
-using ConvKernels = std::array<ConvKernel<KernelSize, T>, Count>;
+template <typename T, typename T1>
+T Normalize(T1 num)
+{
+  std::numeric_limits<T> lim;
+  if(num > lim.max())
+  {
+      return lim.max();
+  }
+  if(num < lim.min())
+  {
+      return lim.min();
+  }
+  return num;
+}
 
 
-template <typename T,
-	  size_t PixelSize,
-	  typename KernelType,
-	  size_t KernelSize>
+template <typename T>
 struct ConvHandler
 {
-  ConvHandler(ConvKernel<KernelSize, KernelType> kernels)
+  ConvHandler(ConvKernel kernels)
   : mKernel(std::move(kernels))
   {}
 
-  void operator()(ImageBuffer<T, PixelSize>& buffer,
-      ImageBuffer<T, PixelSize>& resultBuffer, size_t& i, size_t& j)
+  void operator()(ImageBuffer<T>& buffer,
+      ImageBuffer<T>& resultBuffer, size_t& i, size_t& j)
   {
     int32_t resultPix{};
-    for(size_t l = 0; l < KernelSize; ++l)
+    auto kernelSize = mKernel.size();
+    if(j > buffer.GetWidth() - kernelSize
+	|| i > buffer.GetHeight() - kernelSize)
     {
-	for(size_t m = 0; m < KernelSize; ++m)
+	return;
+    }
+    for(size_t l = 0; l < kernelSize; ++l)
+    {
+	for(size_t m = 0; m < kernelSize; ++m)
 	{
 	    auto origPix = buffer.GetElement(i+l, j+m);
 	    auto kerK = mKernel[l][m];
@@ -37,24 +50,24 @@ struct ConvHandler
     }
 
     auto pix = resultBuffer.GetElement(
-	i + (KernelSize - 1)/2,
-	j + (KernelSize - 1)/2);
+	i + (kernelSize - 1)/2,
+	j + (kernelSize - 1)/2);
 
-    pix[0] = resultPix;
+    pix[0] = Normalize<T>(resultPix);
   }
 private:
-  ConvKernel<KernelSize, KernelType> mKernel;
+  ConvKernel mKernel;
 };
 
 class ImageProcessor
 {
 public:
-  template <typename T, size_t PixelSize = 1, typename ImageProcFunc>
-  static ImageBuffer<T, PixelSize> Convolution(ImageBuffer<T, PixelSize>& buffer, ImageProcFunc imgProcessor)
+  template <typename T, typename ImageProcFunc>
+  static ImageBuffer<T> Convolution(ImageBuffer<T>& buffer, ImageProcFunc imgProcessor)
   {
     auto width = buffer.GetWidth();
     auto height = buffer.GetHeight();
-    ImageBuffer<T, PixelSize> resultBuffer(width, height);
+    ImageBuffer<T> resultBuffer(width, height, buffer.GetPixelType());
     for(size_t i = 0; i < height; ++i)
     {
 	for(size_t j = 0; j < width; ++j)

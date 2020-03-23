@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <iostream>
+#include <sstream>
 #include "VideoDevice/VideoDevice.h"
 #include "ImageProcessing/JpegHelper.h"
 #include "ImageProcessing/ImageProcessor.h"
@@ -52,7 +53,56 @@ OnProcessImageSrv::SetupCamera(Socket& sock)
   }
   return EConnectionStatus::SUCCESS;
 }
+bool GetSettings(Socket& sock, ConvKernel& ker)
+{
+  uint32_t size{};
+  auto res = sock.ReadData(&size);
+  do
+  {
+     if(!res.second)
+     {
+         break;
+     }
+     std::string kernel(size, '\0');
+     for(uint32_t i = 0; i < size; ++i)
+     {
+         char tmp{};
+         res = sock.ReadData(&tmp);
+         kernel[i] = tmp;
+         if(!res.second)
+         {
+             break;
+         }
+     }
+     std::stringstream ss;
+     uint32_t kerSize{};
+     ss << kernel;
+     ss >> kerSize;
+     ker.resize(kerSize);
+     for(uint32_t i = 0; i < kerSize; ++i)
+     {
+         std::vector<KernelType> row(kerSize, 0.0f);
+         for(uint32_t j = 0; j < kerSize; ++j)
+         {
+             KernelType tmp{};
+             ss >> tmp;
+             row[j] = tmp;
+         }
+         ker[i] = std::move(row);
+     }
+     return true;
 
+  } while(false);
+  ker =
+      {
+        {-1.0f,-1.0f,0.0f,1.0f,1.0f},
+        {-1.0f,-1.0f,0.0f,1.0f,1.0f},
+        { 0.0f, 0.0f,0.0f,0.0f,0.0f},
+        {-1.0f,-1.0f,0.0f,1.0f,1.0f},
+        {-1.0f,-1.0f,0.0f,1.0f,1.0f}
+      };
+  return true;
+}
 EConnectionStatus
 OnProcessImageSrv::ProcessImage(Socket& sock)
 {
@@ -67,24 +117,17 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         sock.SendData(&response);
         break;
     }
-
-    ;
-    constexpr auto kerSize = 5;
-    ConvHandler<unsigned char, 1,float,kerSize> convHandler
+    ConvKernel ker;
+    GetSettings(sock, ker);
+    ConvHandler<unsigned char> convHandler
     (
-            {
-              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f},
-              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f},
-              std::array<float, kerSize>{ 0.0f, 0.0f,0.0f,0.0f,0.0f},
-              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f},
-              std::array<float, kerSize>{-2.0f,-1.0f,0.0f,1.0f,2.0f}
-            }
+        ker
     );
     auto processedBuff =
         ImageProcessor::Convolution(
             decomprBuffer,
             convHandler);
-    auto compressedBuffer = JpegHelper::Compress<1>(processedBuff);
+    auto compressedBuffer = JpegHelper::Compress(processedBuff);
     response = EConnectionStatus::SUCCESS;
     auto res = sock.SendData(&response);
     if(!res.second)
