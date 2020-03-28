@@ -1,12 +1,14 @@
+#include "VideoDevice/VideoDevice.h"
+#include "ImageProcessing/JpegHelper.h"
+#include "ImageProcessing/ImageProcessor.h"
+#include "SettingsHandler.h"
+#include "SwapChain.h"
+
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <iostream>
-#include <sstream>
-#include "VideoDevice/VideoDevice.h"
-#include "ImageProcessing/JpegHelper.h"
-#include "ImageProcessing/ImageProcessor.h"
 
 #include "OnProcessImageSrv.h"
 
@@ -53,56 +55,7 @@ OnProcessImageSrv::SetupCamera(Socket& sock)
   }
   return EConnectionStatus::SUCCESS;
 }
-bool GetSettings(Socket& sock, ConvKernel& ker)
-{
-  uint32_t size{};
-  auto res = sock.ReadData(&size);
-  do
-  {
-     if(!res.second)
-     {
-         break;
-     }
-     std::string kernel(size, '\0');
-     for(uint32_t i = 0; i < size; ++i)
-     {
-         char tmp{};
-         res = sock.ReadData(&tmp);
-         kernel[i] = tmp;
-         if(!res.second)
-         {
-             break;
-         }
-     }
-     std::stringstream ss;
-     uint32_t kerSize{};
-     ss << kernel;
-     ss >> kerSize;
-     ker.resize(kerSize);
-     for(uint32_t i = 0; i < kerSize; ++i)
-     {
-         std::vector<KernelType> row(kerSize, 0.0f);
-         for(uint32_t j = 0; j < kerSize; ++j)
-         {
-             KernelType tmp{};
-             ss >> tmp;
-             row[j] = tmp;
-         }
-         ker[i] = std::move(row);
-     }
-     return true;
 
-  } while(false);
-  ker =
-      {
-        {-1.0f,-1.0f,0.0f,1.0f,1.0f},
-        {-1.0f,-1.0f,0.0f,1.0f,1.0f},
-        { 0.0f, 0.0f,0.0f,0.0f,0.0f},
-        {-1.0f,-1.0f,0.0f,1.0f,1.0f},
-        {-1.0f,-1.0f,0.0f,1.0f,1.0f}
-      };
-  return true;
-}
 EConnectionStatus
 OnProcessImageSrv::ProcessImage(Socket& sock)
 {
@@ -117,17 +70,29 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         sock.SendData(&response);
         break;
     }
-    ConvKernel ker;
-    GetSettings(sock, ker);
-    ConvHandler<unsigned char> convHandler
-    (
-        ker
-    );
-    auto processedBuff =
+    GetSettings(sock);
+    auto settings = SettingsHandler::Get().GetSettings();
+
+    auto width = decomprBuffer.GetWidth();
+    auto height = decomprBuffer.GetHeight();
+    ImageBuffer<unsigned char> resultBuffer(width, height, decomprBuffer.GetPixelType());
+    SwapChain<ImageBuffer<unsigned char>> chain(&decomprBuffer, &resultBuffer);
+    for(size_t i = 0; i < settings.size(); ++i)
+    {
+        ConvHandler<unsigned char> convHandler
+        (
+        		settings[i]
+        );
+        auto& originalBuff = *chain.GetActive();
+        chain.Swap();
+        auto& processedBuff = *chain.GetActive();
         ImageProcessor::Convolution(
-            decomprBuffer,
-            convHandler);
-    auto compressedBuffer = JpegHelper::Compress(processedBuff);
+        		originalBuff,
+				processedBuff,
+                convHandler);
+    }
+
+    auto compressedBuffer = JpegHelper::Compress(*chain.GetActive());
     response = EConnectionStatus::SUCCESS;
     auto res = sock.SendData(&response);
     if(!res.second)

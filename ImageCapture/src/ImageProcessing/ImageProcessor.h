@@ -63,11 +63,10 @@ class ImageProcessor
 {
 public:
   template <typename T, typename ImageProcFunc>
-  static ImageBuffer<T> Convolution(ImageBuffer<T>& buffer, ImageProcFunc imgProcessor)
+  static void Convolution(ImageBuffer<T>& buffer, ImageBuffer<T>& resultBuffer, ImageProcFunc imgProcessor)
   {
     auto width = buffer.GetWidth();
     auto height = buffer.GetHeight();
-    ImageBuffer<T> resultBuffer(width, height, buffer.GetPixelType());
     for(size_t i = 0; i < height; ++i)
     {
 	for(size_t j = 0; j < width; ++j)
@@ -75,6 +74,5 @@ public:
 	    imgProcessor(buffer, resultBuffer, i, j);
 	}
     }
-    return resultBuffer;
   }
 };
