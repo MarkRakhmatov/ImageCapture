@@ -14,18 +14,10 @@ class CommandHandler
 {
 public:
   CommandHandler();
-  EConnectionStatus Handle(Socket& sock);
+  EConnectionStatus Handle(Socket& sock, ECommand command);
 private:
   ECommand GetCommand();
 private:
   std::array<std::unique_ptr<IOnCommand>,
               static_cast<size_t>(ECommand::SIZE)> mCommandToHandler{};
-
-  const std::unordered_map<std::string, ECommand> mCommandsMap
-  {
-    {"process_img", ECommand::PROCESS_IMAGE},
-    {"srv_shutdown", ECommand::SERVER_SHUTDOWN},
-    {"exit", ECommand::EXIT},
-
-  };
 };

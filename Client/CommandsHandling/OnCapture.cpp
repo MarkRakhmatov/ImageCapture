@@ -18,8 +18,7 @@ void SendFilteringSettings(Socket& sock)
   std::string settingsFileName("settings.txt");
   std::ifstream settings(settingsFileName);
   std::string settingsStr;
-  std::string temp;
-  while(settings >> temp)
+  for(std::string temp; settings >> temp;)
   {
       settingsStr += " " + temp;
   }
@@ -77,7 +76,7 @@ OnCapture::GetResponse(Socket& sock)
   {
       return EConnectionStatus::FAIL;
   }
-  std::cout << "x = " << x << std::endl
-        << "y = " << y << std::endl;
+  std::cout << "x = " << x << std::endl;
+  std::cout << "y = " << y << std::endl;
   return status;
 }

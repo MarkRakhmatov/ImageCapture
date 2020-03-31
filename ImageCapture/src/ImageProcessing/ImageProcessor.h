@@ -21,6 +21,19 @@ T Normalize(T1 num)
   return num;
 }
 
+template<typename T>
+T InBounds(T val, T lowwerBound, T upperBound)
+{
+  if(val<lowwerBound)
+  {
+      return lowwerBound;
+  }
+  if(val>upperBound)
+  {
+      return upperBound;
+  }
+  return val;
+}
 
 template <typename T>
 struct ConvHandler
@@ -39,19 +52,22 @@ struct ConvHandler
     {
 	return;
     }
-    for(size_t l = 0; l < kernelSize; ++l)
+    int32_t iStart = InBounds<int32_t>(i - (kernelSize - 1)/2, 0, buffer.GetHeight());
+    int32_t jStart =  InBounds<int32_t>(j - (kernelSize - 1)/2, 0, buffer.GetWidth());
+    size_t heightBound = InBounds<size_t>(kernelSize, 0, buffer.GetHeight() - iStart);
+    size_t widthBound = InBounds<size_t>(kernelSize, 0, buffer.GetWidth() - jStart);
+
+    for(size_t l = 0; l < heightBound; ++l)
     {
-	for(size_t m = 0; m < kernelSize; ++m)
+	for(size_t m = 0; m < widthBound; ++m)
 	{
-	    auto origPix = buffer.GetElement(i+l, j+m);
+	    auto origPix = buffer.GetElement(iStart+l, jStart+m);
 	    auto kerK = mKernel[l][m];
 	    resultPix += origPix[0]*kerK;
 	}
     }
 
-    auto pix = resultBuffer.GetElement(
-	i + (kernelSize - 1)/2,
-	j + (kernelSize - 1)/2);
+    auto pix = resultBuffer.GetElement(i,j);
 
     pix[0] = Normalize<T>(resultPix);
   }

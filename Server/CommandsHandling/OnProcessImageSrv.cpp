@@ -70,8 +70,9 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         sock.SendData(&response);
         break;
     }
+    auto& settings = SettingsHandler::Get().GetSettings();
+    settings.clear();
     GetSettings(sock);
-    auto settings = SettingsHandler::Get().GetSettings();
 
     auto width = decomprBuffer.GetWidth();
     auto height = decomprBuffer.GetHeight();

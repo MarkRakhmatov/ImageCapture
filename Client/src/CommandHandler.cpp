@@ -18,27 +18,12 @@ CommandHandler::CommandHandler()
                     .reset(new OnServerShutdown);
 }
 
-ECommand
-CommandHandler::GetCommand()
-{
-  std::cout << "Enter command: ";
-  std::string command;
-  std::cin >> command;
-  auto iter = mCommandsMap.find(command);
-  if(iter == mCommandsMap.end())
-  {
-      return ECommand::SIZE;
-  }
-  return iter->second;
-}
-
 EConnectionStatus
-CommandHandler::Handle(Socket& sock)
+CommandHandler::Handle(Socket& sock, ECommand command)
 {
-  ECommand command = GetCommand();
   if(command >= ECommand::SIZE)
   {
-      std::cout << "Invalid command!" <<std::endl;
+      std::cout << "Invalid command!" << std::endl;
       return EConnectionStatus::FAIL;
   }
 

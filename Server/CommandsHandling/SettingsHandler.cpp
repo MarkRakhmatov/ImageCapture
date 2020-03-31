@@ -60,7 +60,7 @@ bool GetSettings(Socket& sock)
     	 std::cout << "unsupported handler type: " << handlerType <<std::endl;
     	 break;
      }
- 	 auto settings = SettingsHandler::Get().GetSettings();
+ 	 auto& settings = SettingsHandler::Get().GetSettings();
  	 ReadConvHandlers(ss, settings);
      return true;
 

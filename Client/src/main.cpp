@@ -10,7 +10,7 @@ int main()
       auto status = client.Communicate();
       if(status == EConnectionStatus::FAIL)
       {
-          std::cout << "Communication fail!" << std::endl;
+          //std::cout << "Communication fail!" << std::endl;
           continue;
       }
       if(status == EConnectionStatus::SHUTDOWN)
