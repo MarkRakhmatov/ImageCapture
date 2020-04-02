@@ -3,6 +3,7 @@
 #include "ImageProcessing/ImageProcessor.h"
 #include "SettingsHandler.h"
 #include "SwapChain.h"
+#include "Calculations.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -100,8 +101,9 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
     {
         break;
     }
-    int32_t x = 73;
-    int32_t y = 27;
+    int32_t x{};
+    int32_t y{};
+    auto status = GetAngles(*chain.GetActive(), x, y);
     res = sock.SendData(&x, &y);
     if(!res.second)
     {

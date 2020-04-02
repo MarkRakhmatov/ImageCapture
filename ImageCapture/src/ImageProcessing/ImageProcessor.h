@@ -43,15 +43,11 @@ struct ConvHandler
   {}
 
   void operator()(ImageBuffer<T>& buffer,
-      ImageBuffer<T>& resultBuffer, size_t& i, size_t& j)
+      ImageBuffer<T>& resultBuffer, size_t i, size_t j)
   {
     int32_t resultPix{};
-    auto kernelSize = mKernel.size();
-    if(j > buffer.GetWidth() - kernelSize
-	|| i > buffer.GetHeight() - kernelSize)
-    {
-	return;
-    }
+    const auto kernelSize = mKernel.size();
+
     int32_t iStart = InBounds<int32_t>(i - (kernelSize - 1)/2, 0, buffer.GetHeight());
     int32_t jStart =  InBounds<int32_t>(j - (kernelSize - 1)/2, 0, buffer.GetWidth());
     size_t heightBound = InBounds<size_t>(kernelSize, 0, buffer.GetHeight() - iStart);
@@ -61,15 +57,12 @@ struct ConvHandler
     {
 	for(size_t m = 0; m < widthBound; ++m)
 	{
-	    auto origPix = buffer.GetElement(iStart+l, jStart+m);
-	    auto kerK = mKernel[l][m];
-	    resultPix += origPix[0]*kerK;
+	    resultPix +=
+		*buffer.GetElement(iStart+l, jStart+m)*mKernel[l][m];
 	}
     }
 
-    auto pix = resultBuffer.GetElement(i,j);
-
-    pix[0] = Normalize<T>(resultPix);
+    resultBuffer.GetElement(i,j)[0] = Normalize<T>(resultPix);
   }
 private:
   ConvKernel mKernel;
@@ -79,7 +72,7 @@ class ImageProcessor
 {
 public:
   template <typename T, typename ImageProcFunc>
-  static void Convolution(ImageBuffer<T>& buffer, ImageBuffer<T>& resultBuffer, ImageProcFunc imgProcessor)
+  static void Convolution(ImageBuffer<T>& buffer, ImageBuffer<T>& resultBuffer, ImageProcFunc& imgProcessor)
   {
     auto width = buffer.GetWidth();
     auto height = buffer.GetHeight();

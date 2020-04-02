@@ -15,9 +15,9 @@ enum class EPixelType
 struct EnumClassHash
 {
     template <typename T>
-    std::size_t operator()(T t) const
+    size_t operator()(T t) const
     {
-        return static_cast<std::size_t>(t);
+        return static_cast<size_t>(t);
     }
 };
 template<typename T>
@@ -78,14 +78,12 @@ public:
 
   T* GetElement(size_t i, size_t j)
   {
-    auto index = (i*mWidth + j)*GetPixelSize();
-    return &mBuffer[index];
+    return &mBuffer[(i*mWidth + j)*GetPixelSize()];
   }
 
   const T* GetElement(size_t i, size_t j) const
   {
-    auto index = (i*mWidth + j)*GetPixelSize();
-    return &mBuffer[index];
+    return &mBuffer[(i*mWidth + j)*GetPixelSize()];
   }
 
   T* Get()
