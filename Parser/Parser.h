@@ -1,6 +1,7 @@
 #pragma once
 #include "ParserConfiguration.h"
-#include "TypeHandler.h"
+#include "TypeDeclarationParser.h"
+#include "TypeDataParser.h"
 #include "ObjectHandler.h"
 
 #include <string>
@@ -14,13 +15,9 @@ namespace Parser
 	class Parser
 	{
 	public:
-		using TypeID = int;
 		using TypeName = std::basic_string<Token>;
 		using ObjectName = std::basic_string<Token>;
 
-		Parser(const ParserConfiguration<Token>& config)
-		:mParserConfig(config)
-		{}
 		bool Parse(Source& src, ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
 		{
 			bool isTypeDecl = false;
@@ -30,11 +27,12 @@ namespace Parser
 			}
 			if(isTypeDecl)
 			{
-				return ReadTypeDecl(src, objDesc);
+				return ReadTypeDecl(src, config, objDesc);
 			}
-			return ParseObject(src, objDesc);
+			return ParseObject(src, config, objDesc);
 		}
-		bool IsTypeDeclaration(Source& src, ParserConfiguration<Token> config, ObjectDescriptor<Token>& objDesc, bool& isTypeDecl)
+	private:
+		bool IsTypeDeclaration(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc, bool& isTypeDecl)
 		{
 			if(!ReadWord(src, config, objDesc.typeName))
 			{
@@ -42,11 +40,13 @@ namespace Parser
 			}
 			if(config.IsTypeDecl(objDesc.typeName))
 			{
+				isTypeDecl = true;
 				return true;
 			}
+			isTypeDecl = false;
 			return true;
 		}
-		bool ParseObject(Source& src, const ParserConfiguration<Token> config, ObjectDescriptor<Token>& objDesc)
+		bool ParseObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
 		{
 			if(!ReadWord(src, config, objDesc.objName))
 			{
@@ -55,18 +55,6 @@ namespace Parser
 			return mDataParser.ReadObjectData(src, config, objDesc);
 		}
 	private:
-		ObjectName ReadObjectName(Source& src)
-		{
-			SkipIgnoreTokens(src);
-			ObjectName objName;
-			if(!ReadToFirstSkipToken(src, objName))
-			{
-				return ObjectName{};
-			}
-			return objName;
-		}
-	private:
-		ParserConfiguration<Token>& mParserConfig;
 		TypeDataParser<Source, Token> mDataParser;
 	};
 }

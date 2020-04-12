@@ -1,4 +1,7 @@
-; [General settings]
+
+Int num {12345}
+
+
 Type GeneralSettings
 {
 	String imageSrcType;

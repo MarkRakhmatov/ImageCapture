@@ -13,4 +13,10 @@ namespace Parser
 		std::vector<Token> objectData;
 		std::vector<ObjectDescriptor> subObjects;
 	};
+
+	template<typename Token = char>
+	bool operator < (const ObjectDescriptor<Token>& obj, const ObjectDescriptor<Token>& obj1)
+	{
+		return obj.objName<obj1.objName;
+	}
 }

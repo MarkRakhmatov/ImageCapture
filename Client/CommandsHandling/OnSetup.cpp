@@ -50,14 +50,14 @@ void SendFilteringSettings(Socket& sock)
 {
   std::string settingsFileName("settings.txt");
   Parser::FileSource<char> fileSource(settingsFileName);
+  Parser::Parser<Parser::FileSource<char>, char> parser;
   auto config = Parser::GetDefaultParserConfig();
-  Parser::Parser<Parser::FileSource<char>> parser(config);
   std::vector<Parser::ObjectDescriptor<char>> types;
   std::vector<Parser::ObjectDescriptor<char>> objects;
   for(;;)
   {
 	  Parser::ObjectDescriptor<char> objDesc;
-	  if(!parser.ParseObject(fileSource, objDesc))
+	  if(!parser.Parse(fileSource, config, objDesc))
 	  {
 		  break;
 	  }
