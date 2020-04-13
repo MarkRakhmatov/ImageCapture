@@ -13,11 +13,18 @@ namespace Parser
 	{
 	public:
 		ParserConfiguration()=default;
-		ParserConfiguration(const std::basic_string<Token>& typeName, const std::vector<ObjectDescriptor<Token>>& types, const std::vector<Token>& ignoreTokens, const std::pair<Token, Token>& objDataBrackets)
+		ParserConfiguration(const std::basic_string<Token>& typeName,
+				const std::vector<ObjectDescriptor<Token>>& types,
+				const std::vector<Token>& ignoreTokens,
+				const std::pair<Token, Token>& objDataBrackets,
+				const std::pair<Token, Token>& stringBrackets,
+				const std::pair<Token, Token>& charBrackets)
 		: mTypeName(typeName)
 		, mTypes(types.begin(), types.end())
 		, mIgnoreTokens(ignoreTokens)
 		, mObjDataBrackets(objDataBrackets)
+		, mStringBrackets(stringBrackets)
+		, mCharBrackets(charBrackets)
 		{
 		}
 		bool AddType(const ObjectDescriptor<Token>& type)
@@ -30,6 +37,7 @@ namespace Parser
 			mTypes.insert(type);
 			return true;
 		}
+
 		bool GetType(const std::basic_string<Token>& typeName, ObjectDescriptor<Token>& type) const
 		{
 			auto iter = std::find_if(mTypes.begin(), mTypes.end(),
@@ -58,14 +66,32 @@ namespace Parser
 								});
 			return iter != mTypes.end();
 		}
-		bool IsDataStartSymbol(Token t) const
+		bool IsBlockStart(Token t) const
 		{
 			return t == mObjDataBrackets.first;
 		}
 
-		bool IsDataEndSymbol(Token t) const
+		bool IsBlockEnd(Token t) const
 		{
 			return t == mObjDataBrackets.second;
+		}
+		bool IsStringStart(Token t) const
+		{
+			return t == mStringBrackets.first;
+		}
+
+		bool IsStringEnd(Token t) const
+		{
+			return t == mStringBrackets.second;
+		}
+		bool IsCharStart(Token t) const
+		{
+			return t == mCharBrackets.first;
+		}
+
+		bool IsCharEnd(Token t) const
+		{
+			return t == mCharBrackets.second;
 		}
 		bool IsTypeDecl(const std::basic_string<Token>& typeName) const
 		{
@@ -76,15 +102,13 @@ namespace Parser
 		std::set<ObjectDescriptor<Token>> mTypes;
 		std::vector<Token> mIgnoreTokens;
 		std::pair<Token, Token> mObjDataBrackets;
+		std::pair<Token, Token> mStringBrackets;
+		std::pair<Token, Token> mCharBrackets;
 	};
 
 	ParserConfiguration<char> GetDefaultParserConfig()
 	{
-		ObjectDescriptor<char> desc;
-		desc.objName = "Int";
-		desc.typeName = "Type";
-		std::vector<ObjectDescriptor<char>> types{desc};
-		ParserConfiguration<char> config(std::string("Type"), types,{' ', '\n'}, {'{','}'});
+		ParserConfiguration<char> config("Type", {{"Type", "int32"}, {"Type", "char"}, {"Type", "string"}}, {' ', '\n'}, {'{','}'}, {'\"','\"'}, {'\'', '\''});
 		return config;
 	}
 }

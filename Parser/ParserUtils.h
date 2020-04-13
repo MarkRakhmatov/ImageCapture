@@ -48,7 +48,7 @@ namespace Parser
 			{
 				continue;
 			}
-			if(config.IsDataStartSymbol(token))
+			if(config.IsBlockStart(token))
 			{
 				return true;
 			}
@@ -86,6 +86,17 @@ namespace Parser
 		Token token;
 		for(;;)
 		{
+			if(!src.PeekToken(token))
+			{
+				return false;
+			}
+			if(config.IsBlockStart(token)
+					|| config.IsBlockEnd(token)
+					|| config.IsStringStart(token)
+					|| config.IsStringEnd(token))
+			{
+				break;
+			}
 			if(!src.GetToken(token))
 			{
 				return false;

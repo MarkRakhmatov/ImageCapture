@@ -13,9 +13,17 @@ namespace Parser
 	template<typename Source, typename Token=char>
 	bool ReadReservedType(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
 	{
-		if(typeObj.objName=="Int")
+		if(typeObj.objName=="int32")
 		{
-			return ReadIntObject(src, config, obj);
+			return ReadNumericObject<int32_t>(src, config, obj);
+		}
+		if(typeObj.objName=="char")
+		{
+			return ReadCharObject(src, config, obj);
+		}
+		if(typeObj.objName=="string")
+		{
+			return ReadStringObject(src, config, obj);
 		}
 		return false;
 	}
@@ -25,21 +33,21 @@ namespace Parser
 	class TypeDataParser
 	{
 	public:
-		bool ReadObjectData(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
+		bool ReadObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
 		{
 			ObjectDescriptor<Token> typeObj;
 			if(!config.GetType(obj.typeName, typeObj))
 			{
 				return false;
 			}
-			if(!ReadObjectData(src, config, typeObj, obj))
+			if(!ReadObject(src, config, typeObj, obj))
 			{
 				return false;
 			}
 			return true;
 		}
 	private:
-		bool ReadObjectData(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
+		bool ReadObject(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
 		{
 			if(config.IsReservedType(typeObj.objName))
 			{

@@ -1,11 +1,14 @@
 
-Int num {12345}
-
+int32 num{12345}
+int32 num { 228}
+int32 num {35461   }
+char ch{'c'}
+string str{"j;hh;pjp;huohuo;hupoh}}}lnlbhlllllllhn)))"}
 
 Type GeneralSettings
 {
-	String imageSrcType;
-	String imageSrcName;
+	string imageSrcType;
+	string imageSrcName;
 }
 
 Type Matrix

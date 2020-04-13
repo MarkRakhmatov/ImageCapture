@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <cstdint>
 
 namespace Parser
 {
@@ -52,7 +51,7 @@ namespace Parser
 			{
 				return false;
 			}
-			return mDataParser.ReadObjectData(src, config, objDesc);
+			return mDataParser.ReadObject(src, config, objDesc);
 		}
 	private:
 		TypeDataParser<Source, Token> mDataParser;

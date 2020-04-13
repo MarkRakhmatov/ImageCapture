@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <sstream>
 #include <algorithm>
 
 #include "ParserConfiguration.h"
@@ -8,33 +9,104 @@
 
 namespace Parser
 {
-	template<typename Source, typename Token=char>
-	bool ReadIntObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
+	template<typename Num, typename Source, typename Token=char>
+	bool ReadNumericObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
 	{
-		std::vector<Token> allowedTokens{'0','1','2','3','4','5','6','7','8','9'};
+		if(!ReadObjectStart(src, config))
+		{
+			return false;
+		}
+		SkipTokens(src, config);
+		if(!ReadObjectData<Num, Source, Token>(src, obj))
+		{
+			return false;
+		}
+		SkipTokens(src, config);
+		Token token;
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+
+		if(config.IsBlockEnd(token))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	template<typename Source, typename Token=char>
+	bool ReadCharObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
+	{
 		if(!ReadObjectStart(src, config))
 		{
 			return false;
 		}
 		SkipTokens(src, config);
 		Token token;
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		if(!config.IsCharStart(token))
+		{
+			return false;
+		}
+
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		obj.objectData.push_back(token);
+
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		if(!config.IsCharEnd(token))
+		{
+			return false;
+		}
+
+		SkipTokens(src, config);
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		if(config.IsBlockEnd(token))
+		{
+			return true;
+		}
+		return false;
+	}
+
+	template<typename Source, typename Token=char>
+	bool ReadStringObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
+	{
+		if(!ReadObjectStart(src, config))
+		{
+			return false;
+		}
+		SkipTokens(src, config);
+
+		Token token;
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		if(!config.IsStringStart(token))
+		{
+			return false;
+		}
 		for(;;)
 		{
 			if(!src.GetToken(token))
 			{
 				return false;
 			}
-			if(config.IsSkipToken(token))
+			if(config.IsStringEnd(token))
 			{
 				break;
-			}
-			if(config.IsDataEndSymbol(token))
-			{
-				return true;
-			}
-			if(!Contains(allowedTokens, token))
-			{
-				return false;
 			}
 			obj.objectData.push_back(token);
 		}
@@ -45,10 +117,10 @@ namespace Parser
 			return false;
 		}
 
-		if(config.IsDataEndSymbol(token))
+		if(config.IsBlockEnd(token))
 		{
 			return true;
 		}
-		return true;
+		return false;
 	}
 }

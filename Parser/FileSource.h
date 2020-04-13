@@ -31,9 +31,17 @@ namespace Parser
 			token = static_cast<Token>(token);
 			return true;
 		}
+		template<typename T>
+		bool Read(T* data)
+		{
+			if(!data)
+			{
+				return false;
+			}
+			mFile >> *data;
+			return !mFile.fail();
+		}
 	private:
 		std::basic_ifstream<Token> mFile;
 	};
-
-	using FileSourceA = FileSource<char>;
 }

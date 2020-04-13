@@ -52,7 +52,6 @@ void SendFilteringSettings(Socket& sock)
   Parser::FileSource<char> fileSource(settingsFileName);
   Parser::Parser<Parser::FileSource<char>, char> parser;
   auto config = Parser::GetDefaultParserConfig();
-  std::vector<Parser::ObjectDescriptor<char>> types;
   std::vector<Parser::ObjectDescriptor<char>> objects;
   for(;;)
   {
@@ -61,7 +60,7 @@ void SendFilteringSettings(Socket& sock)
 	  {
 		  break;
 	  }
-	  if(objDesc.objName=="Type")
+	  if(config.IsTypeDecl(objDesc.typeName))
 	  {
 		  config.AddType(objDesc);
 		  continue;
