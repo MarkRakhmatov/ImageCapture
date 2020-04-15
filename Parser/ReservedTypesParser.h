@@ -9,39 +9,24 @@
 
 namespace Parser
 {
+
+	template<typename Source, typename Token>
+	using ReaderFunc = bool(*)(Source&, const ParserConfiguration<Token>&, ObjectDescriptor<Token>& obj);
+
 	template<typename Num, typename Source, typename Token=char>
 	bool ReadNumericObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
 	{
-		if(!ReadObjectStart(src, config))
-		{
-			return false;
-		}
 		SkipTokens(src, config);
 		if(!ReadObjectData<Num, Source, Token>(src, obj))
 		{
 			return false;
 		}
-		SkipTokens(src, config);
-		Token token;
-		if(!src.GetToken(token))
-		{
-			return false;
-		}
-
-		if(config.IsBlockEnd(token))
-		{
-			return true;
-		}
-		return false;
+		return true;
 	}
 
 	template<typename Source, typename Token=char>
 	bool ReadCharObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
 	{
-		if(!ReadObjectStart(src, config))
-		{
-			return false;
-		}
 		SkipTokens(src, config);
 		Token token;
 		if(!src.GetToken(token))
@@ -67,26 +52,12 @@ namespace Parser
 		{
 			return false;
 		}
-
-		SkipTokens(src, config);
-		if(!src.GetToken(token))
-		{
-			return false;
-		}
-		if(config.IsBlockEnd(token))
-		{
-			return true;
-		}
-		return false;
+		return true;
 	}
 
 	template<typename Source, typename Token=char>
 	bool ReadStringObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
 	{
-		if(!ReadObjectStart(src, config))
-		{
-			return false;
-		}
 		SkipTokens(src, config);
 
 		Token token;
@@ -110,16 +81,59 @@ namespace Parser
 			}
 			obj.objectData.push_back(token);
 		}
-		SkipTokens(src, config);
-
-		if(!src.GetToken(token))
+		return true;
+	}
+	template<typename Source, typename Token>
+	bool HandleReadArray(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj, bool isArray, ReaderFunc<Source, Token> reader)
+	{
+		if(!isArray)
 		{
-			return false;
+			return reader(src, config, obj);
 		}
-
-		if(config.IsBlockEnd(token))
+		for(;;)
 		{
-			return true;
+			ObjectDescriptor<Token> suboOj;
+			if(!reader(src, config, suboOj))
+			{
+				return false;
+			}
+			obj.subObjects.push_back(suboOj);
+			if(!SkipTokens(src, config))
+			{
+				return false;
+			}
+			Token token;
+			if(!src.PeekToken(token))
+			{
+				return false;
+			}
+			if(!config.IsSeparator(token))
+			{
+				return true;
+			}
+
+			if(!src.GetToken(token))
+			{
+				return false;
+			}
+		}
+		return false;
+	}
+
+	template<typename Source, typename Token>
+	bool ReadReservedType(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj, bool isArray)
+	{
+		if(typeObj.objName=="int32")
+		{
+			return HandleReadArray<Source, Token>(src, config, obj, isArray, &ReadNumericObject<int32_t>);
+		}
+		if(typeObj.objName=="char")
+		{
+			return HandleReadArray<Source, Token>(src, config, obj, isArray, &ReadCharObject);
+		}
+		if(typeObj.objName=="string")
+		{
+			return HandleReadArray<Source, Token>(src, config, obj, isArray, &ReadStringObject);
 		}
 		return false;
 	}

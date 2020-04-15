@@ -1,9 +1,9 @@
-
-int32 num{12345}
-int32 num { 228}
-int32 num {35461   }
+int32 arr[]{1, 2, 3, 4, 5}
+int32 num { 228   }
 char ch{'c'}
+char chAray[]{'c', 'b', 'a'}
 string str{"j;hh;pjp;huohuo;hupoh}}}lnlbhlllllllhn)))"}
+string strArr[]{"aaa", "bbb", "ccc"}
 
 Type GeneralSettings
 {

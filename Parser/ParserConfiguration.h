@@ -18,13 +18,23 @@ namespace Parser
 				const std::vector<Token>& ignoreTokens,
 				const std::pair<Token, Token>& objDataBrackets,
 				const std::pair<Token, Token>& stringBrackets,
-				const std::pair<Token, Token>& charBrackets)
+				const std::pair<Token, Token>& charBrackets,
+				const std::pair<Token, Token>& arrayBrackets,
+				const std::pair<Token, Token>& digits,
+				const std::pair<Token, Token>& uppercaseLetters,
+				const std::pair<Token, Token>& lowercaseLetters,
+				Token separator)
 		: mTypeName(typeName)
 		, mTypes(types.begin(), types.end())
 		, mIgnoreTokens(ignoreTokens)
 		, mObjDataBrackets(objDataBrackets)
 		, mStringBrackets(stringBrackets)
 		, mCharBrackets(charBrackets)
+		, mArrayBrackets(arrayBrackets)
+		, mDigits(digits)
+		, mUppercaseLetters(uppercaseLetters)
+		, mLowercaseLetters(lowercaseLetters)
+		, mSeparator(separator)
 		{
 		}
 		bool AddType(const ObjectDescriptor<Token>& type)
@@ -52,9 +62,9 @@ namespace Parser
 			type = *iter;
 			return true;
 		}
-		bool IsSkipToken(Token t) const
+		bool IsSkipToken(Token token) const
 		{
-			auto iter = std::find(mIgnoreTokens.begin(), mIgnoreTokens.end(), t);
+			auto iter = std::find(mIgnoreTokens.begin(), mIgnoreTokens.end(), token);
 			return iter != mIgnoreTokens.end();
 		}
 		bool IsReservedType(const std::basic_string<Token>& typeName) const
@@ -66,33 +76,58 @@ namespace Parser
 								});
 			return iter != mTypes.end();
 		}
-		bool IsBlockStart(Token t) const
+		bool IsBlockStart(Token token) const
 		{
-			return t == mObjDataBrackets.first;
+			return token == mObjDataBrackets.first;
 		}
 
-		bool IsBlockEnd(Token t) const
+		bool IsBlockEnd(Token token) const
 		{
-			return t == mObjDataBrackets.second;
+			return token == mObjDataBrackets.second;
 		}
-		bool IsStringStart(Token t) const
+		bool IsStringStart(Token token) const
 		{
-			return t == mStringBrackets.first;
-		}
-
-		bool IsStringEnd(Token t) const
-		{
-			return t == mStringBrackets.second;
-		}
-		bool IsCharStart(Token t) const
-		{
-			return t == mCharBrackets.first;
+			return token == mStringBrackets.first;
 		}
 
-		bool IsCharEnd(Token t) const
+		bool IsStringEnd(Token token) const
 		{
-			return t == mCharBrackets.second;
+			return token == mStringBrackets.second;
 		}
+		bool IsCharStart(Token token) const
+		{
+			return token == mCharBrackets.first;
+		}
+
+		bool IsCharEnd(Token token) const
+		{
+			return token == mCharBrackets.second;
+		}
+		bool IsArrayStart(Token token) const
+		{
+			return token == mArrayBrackets.first;
+		}
+
+		bool IsArrayEnd(Token token) const
+		{
+			return token == mArrayBrackets.second;
+		}
+
+		bool IsDigit(Token token) const
+		{
+			return mDigits.first <= token && token <=mDigits.second;
+		}
+
+		bool IsLetter(Token token) const
+		{
+			return (mUppercaseLetters.first <= token && token<=mUppercaseLetters.second)
+					|| (mLowercaseLetters.first <= token && token<=mLowercaseLetters.second);
+		}
+		bool IsSeparator(Token token) const
+		{
+			return token == mSeparator;
+		}
+
 		bool IsTypeDecl(const std::basic_string<Token>& typeName) const
 		{
 			return typeName == mTypeName;
@@ -104,11 +139,30 @@ namespace Parser
 		std::pair<Token, Token> mObjDataBrackets;
 		std::pair<Token, Token> mStringBrackets;
 		std::pair<Token, Token> mCharBrackets;
+		std::pair<Token, Token> mArrayBrackets;
+		std::pair<Token, Token> mDigits;
+		std::pair<Token, Token> mUppercaseLetters;
+		std::pair<Token, Token> mLowercaseLetters;
+		Token mSeparator;
 	};
 
 	ParserConfiguration<char> GetDefaultParserConfig()
 	{
-		ParserConfiguration<char> config("Type", {{"Type", "int32"}, {"Type", "char"}, {"Type", "string"}}, {' ', '\n'}, {'{','}'}, {'\"','\"'}, {'\'', '\''});
+		ParserConfiguration<char> config(
+				"Type",
+				{
+					{"Type", "int32"},
+					{"Type", "char"},
+					{"Type", "string"}},
+				{' ', '\n'},
+				{'{','}'},
+				{'\"','\"'},
+				{'\'', '\''},
+				{'[', ']'},
+				{'0', '9'},
+				{'A', 'Z'},
+				{'a', 'z'},
+				',');
 		return config;
 	}
 }

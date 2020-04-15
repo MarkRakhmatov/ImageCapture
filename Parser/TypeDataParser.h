@@ -11,25 +11,6 @@
 namespace Parser
 {
 	template<typename Source, typename Token=char>
-	bool ReadReservedType(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
-	{
-		if(typeObj.objName=="int32")
-		{
-			return ReadNumericObject<int32_t>(src, config, obj);
-		}
-		if(typeObj.objName=="char")
-		{
-			return ReadCharObject(src, config, obj);
-		}
-		if(typeObj.objName=="string")
-		{
-			return ReadStringObject(src, config, obj);
-		}
-		return false;
-	}
-
-
-	template<typename Source, typename Token=char>
 	class TypeDataParser
 	{
 	public:
@@ -49,11 +30,35 @@ namespace Parser
 	private:
 		bool ReadObject(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
 		{
+			bool isArray = false;
+			if(!ReadArrayDecl(src, config, isArray))
+			{
+				return false;
+			}
+			if(!ReadBlockStart(src, config))
+			{
+				return false;
+			}
 			if(config.IsReservedType(typeObj.objName))
 			{
-				return ReadReservedType(src, config, typeObj, obj);
+				if(!ReadReservedType(src, config, typeObj, obj, isArray))
+				{
+					return false;
+				}
 			}
-			return ReadCustomType(src, config, typeObj, obj);
+			else
+			{
+				if(!ReadCustomType(src, config, typeObj, obj, isArray))
+				{
+					return false;
+				}
+			}
+
+			if(!ReadBlockEnd(src, config))
+			{
+				return false;
+			}
+			return true;
 		}
 	};
 }

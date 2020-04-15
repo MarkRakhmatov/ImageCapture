@@ -9,7 +9,7 @@
 namespace Parser
 {
 	template<typename Source, typename Token=char>
-	bool ReadCustomType(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
+	bool ReadCustomType(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj, bool isArray)
 	{
 		return false;
 	}

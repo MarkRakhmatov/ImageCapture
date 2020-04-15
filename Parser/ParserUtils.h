@@ -35,29 +35,6 @@ namespace Parser
 	}
 
 	template<typename Source, typename Token=char>
-	bool ReadObjectStart(Source& src,  const ParserConfiguration<Token>& config)
-	{
-		Token token;
-		for(;;)
-		{
-			if(!src.GetToken(token))
-			{
-				return false;
-			}
-			if(config.IsSkipToken(token))
-			{
-				continue;
-			}
-			if(config.IsBlockStart(token))
-			{
-				return true;
-			}
-			break;
-		}
-		return false;
-	}
-
-	template<typename Source, typename Token=char>
 	bool SkipTokens(Source& src, const ParserConfiguration<Token>& config)
 	{
 		Token t;
@@ -84,26 +61,29 @@ namespace Parser
 			return false;
 		}
 		Token token;
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		if(!config.IsLetter(token))
+		{
+			return false;
+		}
+		tokens.push_back(token);
 		for(;;)
 		{
 			if(!src.PeekToken(token))
 			{
 				return false;
 			}
-			if(config.IsBlockStart(token)
-					|| config.IsBlockEnd(token)
-					|| config.IsStringStart(token)
-					|| config.IsStringEnd(token))
+			if(!config.IsLetter(token)
+					&& !config.IsDigit(token))
 			{
 				break;
 			}
 			if(!src.GetToken(token))
 			{
 				return false;
-			}
-			if(config.IsSkipToken(token))
-			{
-				break;
 			}
 			tokens.push_back(token);
 		}
@@ -112,6 +92,105 @@ namespace Parser
 			return false;
 		}
 
+		return true;
+	}
+
+	template<typename Source, typename Token>
+	bool ReadBlockStart(Source& src, const ParserConfiguration<Token>& config)
+	{
+		if(!SkipTokens<Source, Token>(src, config))
+		{
+			return false;
+		}
+		Token token;
+		if(!src.GetToken(token) || !config.IsBlockStart(token))
+		{
+			return false;
+		}
+		return true;
+	}
+
+	template<typename Source, typename Token>
+	bool ReadBlockEnd(Source& src, const ParserConfiguration<Token>& config)
+	{
+		if(!SkipTokens<Source, Token>(src, config))
+		{
+			return false;
+		}
+		Token token;
+		if(!src.GetToken(token) || !config.IsBlockEnd(token))
+		{
+			return false;
+		}
+		return true;
+	}
+	template<typename Source, typename Token>
+	bool ReadArrayStart(Source& src, const ParserConfiguration<Token>& config, bool& isArrayStart)
+	{
+		if(!SkipTokens<Source, Token>(src, config))
+		{
+			return false;
+		}
+		Token token;
+		if(!src.PeekToken(token))
+		{
+			return false;
+		}
+		isArrayStart = config.IsArrayStart(token);
+		if(!isArrayStart)
+		{
+			return true;
+		}
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		return true;
+	}
+	template<typename Source, typename Token>
+	bool ReadArrayEnd(Source& src, const ParserConfiguration<Token>& config, bool& isArrayEnd)
+	{
+		if(!SkipTokens<Source, Token>(src, config))
+		{
+			return false;
+		}
+		Token token;
+		if(!src.PeekToken(token))
+		{
+			return false;
+		}
+		isArrayEnd = config.IsArrayEnd(token);
+		if(!isArrayEnd)
+		{
+			return true;
+		}
+		if(!src.GetToken(token))
+		{
+			return false;
+		}
+		return true;
+	}
+	template<typename Source, typename Token>
+	bool ReadArrayDecl(Source& src, const ParserConfiguration<Token>& config, bool& isArray)
+	{
+		bool isArrayStart = false;
+		if(!ReadArrayStart(src, config, isArrayStart))
+		{
+			isArray = false;
+			return false;
+		}
+		if(!isArrayStart)
+		{
+			isArray = false;
+			return true;
+		}
+		bool isArrayEnd = false;
+		if(!ReadArrayEnd(src, config, isArrayEnd) || !isArrayEnd)
+		{
+			return false;
+		}
+
+		isArray = true;
 		return true;
 	}
 }

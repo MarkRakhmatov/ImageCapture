@@ -29,8 +29,9 @@ namespace Parser
 		{
 			return false;
 		}
-		objDesc.objectData.resize(sizeof(T));
+		size_t origSize = objDesc.objectData.size();
+		objDesc.objectData.resize( origSize + sizeof(T));
 
-		return std::memcpy(objDesc.objectData.data(), &data, sizeof(T)) != nullptr;
+		return std::memcpy(objDesc.objectData.data() + origSize, &data, sizeof(T)) != nullptr;
 	}
 }
