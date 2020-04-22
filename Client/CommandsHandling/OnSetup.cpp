@@ -2,7 +2,9 @@
 #include "OnSetup.h"
 #include "Command.h"
 #include "FileSource.h"
+#include "CodeGeneration.h"
 #include "ParserConfiguration.h"
+#include "ParserUtils.h"
 #include <fstream>
 #include <string>
 
@@ -17,7 +19,7 @@ OnSetup::Handle(Socket& sock)
   return GetResponse(sock);
 }
 
-bool SkipLine(const std::string& line)
+/*bool SkipLine(const std::string& line)
 {
 	if(line.empty())
 	{
@@ -28,9 +30,9 @@ bool SkipLine(const std::string& line)
 		return true;
 	}
 	return false;
-}
+}*/
 
-std::string ReadSettings(const std::string& filename)
+/*std::string ReadSettings(const std::string& filename)
 {
 	std::ifstream settings(filename);
 	std::string settingsStr;
@@ -44,19 +46,21 @@ std::string ReadSettings(const std::string& filename)
 	}
 	settings.close();
 	return settingsStr;
-}
+}*/
 
-void SendFilteringSettings(Socket& sock)
+bool SendFilteringSettings(Socket& sock)
 {
   std::string settingsFileName("settings.txt");
   Parser::FileSource<char> fileSource(settingsFileName);
-  Parser::Parser<Parser::FileSource<char>, char> parser;
+  Parser::ObjectParser<Parser::FileSource<char>, char> parser;
   auto config = Parser::GetDefaultParserConfig();
   std::vector<Parser::ObjectDescriptor<char>> objects;
   for(;;)
   {
 	  Parser::ObjectDescriptor<char> objDesc;
-	  if(!parser.Parse(fileSource, config, objDesc))
+	  Parser::EStatus status = parser.Parse(fileSource, config, objDesc);
+	  RET_ON_SUCCESS(status == Parser::EStatus::FAIL, false);
+	  if(status == Parser::EStatus::FILE_END)
 	  {
 		  break;
 	  }
@@ -67,25 +71,7 @@ void SendFilteringSettings(Socket& sock)
 	  }
 	  objects.push_back(objDesc);
   }
-
-  std::string settingsStr = ReadSettings(settingsFileName);
-  uint32_t size{static_cast<uint32_t>(settingsStr.size())};
-  if(!size)
-  {
-      std::cout << "Failed to get settings!"<< std::endl;
-      return;
-  }
-  sock.SendData(&size);
-  std::pair<int,bool> res{};
-  for(size_t i = 0; i < size; ++i)
-  {
-      res = sock.SendData(&settingsStr[i]);
-      if(!res.second)
-      {
-          std::cout << "Failed to send settings!"<< std::endl;
-          return;
-      }
-  }
+  return true;
 }
 
 EConnectionStatus
@@ -99,7 +85,7 @@ OnSetup::SendRequest(Socket& sock)
       std::cout << "Failed to send command!" << std::endl;
       return EConnectionStatus::FAIL;
   }
-  SendFilteringSettings(sock);
+  RET_ON_FAIL(SendFilteringSettings(sock), EConnectionStatus::FAIL);
   return EConnectionStatus::SUCCESS;
 }
 

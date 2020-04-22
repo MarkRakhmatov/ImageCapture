@@ -1,12 +1,12 @@
 #pragma once
-#include <vector>
-#include <algorithm>
-
 #include "ParserConfiguration.h"
 #include "ParserUtils.h"
 #include "ReservedTypesParser.h"
 #include "CustomTypesParser.h"
 #include "ObjectHandler.h"
+
+#include <vector>
+#include <algorithm>
 
 namespace Parser
 {
@@ -14,51 +14,38 @@ namespace Parser
 	class TypeDataParser
 	{
 	public:
-		bool ReadObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
+		EStatus ReadObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& obj)
 		{
 			ObjectDescriptor<Token> typeObj;
 			if(!config.GetType(obj.typeName, typeObj))
 			{
-				return false;
+				return EStatus::FAIL;
 			}
-			if(!ReadObject(src, config, typeObj, obj))
-			{
-				return false;
-			}
-			return true;
+			auto status = ReadObject(src, config, typeObj, obj);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			return EStatus::SUCCESS;
 		}
 	private:
-		bool ReadObject(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
+		EStatus ReadObject(Source& src, const ParserConfiguration<Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj)
 		{
 			bool isArray = false;
-			if(!ReadArrayDecl(src, config, isArray))
-			{
-				return false;
-			}
-			if(!ReadBlockStart(src, config))
-			{
-				return false;
-			}
+			auto status = ReadArrayDecl(src, config, isArray);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			status = ReadBlockStart(src, config);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			if(config.IsReservedType(typeObj.objName))
 			{
-				if(!ReadReservedType(src, config, typeObj, obj, isArray))
-				{
-					return false;
-				}
+				status = ReadReservedType(src, config, typeObj, obj, isArray);
+				RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			}
 			else
 			{
-				if(!ReadCustomType(src, config, typeObj, obj, isArray))
-				{
-					return false;
-				}
+				status = ReadCustomType(src, config, typeObj, obj, isArray);
+				RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			}
-
-			if(!ReadBlockEnd(src, config))
-			{
-				return false;
-			}
-			return true;
+			status = ReadBlockEnd(src, config);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			return EStatus::SUCCESS;
 		}
 	};
 }

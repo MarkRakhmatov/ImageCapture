@@ -1,20 +1,14 @@
 #pragma once
+#include "CodeGeneration.h"
+#include "ParserConfiguration.h"
+#include "ParserTypes.h"
+#include "ObjectHandler.h"
+
 #include <vector>
 #include <algorithm>
 
-#include "ParserConfiguration.h"
-#include "ObjectHandler.h"
-
 namespace Parser
 {
-	template<typename Token=char>
-	using Tokens = std::vector<Token>;
-
-
-	template<typename Token=char>
-	using Brackets = std::pair<Token, Token>;
-
-
 	template<typename Container, typename ValueType>
 	bool Contains(const Container& container, const ValueType& val)
 	{
@@ -22,175 +16,148 @@ namespace Parser
 	}
 
 	template<typename Source, typename Token=char>
-	bool ReadTokens(Source& src, const Tokens<Token>& tokens)
+	EStatus ReadTokens(Source& src, const Tokens<Token>& tokens)
 	{
 		for(auto& token : tokens)
 		{
-			if(!src.GetToken(token))
-			{
-				return false;
-			}
+			auto status = src.GetToken(token);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		}
-		return true;
+		return EStatus::SUCCESS;
 	}
 
-	template<typename Source, typename Token=char>
-	bool SkipTokens(Source& src, const ParserConfiguration<Token>& config)
+	template<typename Source, typename Token>
+	EStatus SkipTokens(Source& src, const ParserConfiguration<Token>& config)
 	{
 		Token t;
 		for(;;)
 		{
-			if(!src.PeekToken(t))
-			{
-				return false;
-			}
+			auto status = src.PeekToken(t);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			if(!config.IsSkipToken(t))
 			{
 				break;
 			}
-			src.GetToken(t);
+			status = src.GetToken(t);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		}
-		return true;
+		return EStatus::SUCCESS;
 	}
 
-	template<typename Source, typename Container, typename Token=char>
-	bool ReadWord(Source& src, const ParserConfiguration<Token>& config, Container& tokens)
+	template<typename Source, typename Container, typename Token>
+	EStatus ReadWord(Source& src, const ParserConfiguration<Token>& config, Container& tokens)
 	{
-		if(!SkipTokens<Source, Token>(src, config))
-		{
-			return false;
-		}
+		auto status = SkipTokens<Source, Token>(src, config);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		Token token;
-		if(!src.GetToken(token))
-		{
-			return false;
-		}
+		status = src.GetToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		if(!config.IsLetter(token))
 		{
-			return false;
+			return EStatus::FAIL;
 		}
 		tokens.push_back(token);
 		for(;;)
 		{
-			if(!src.PeekToken(token))
-			{
-				return false;
-			}
+			status = src.PeekToken(token);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			if(!config.IsLetter(token)
 					&& !config.IsDigit(token))
 			{
 				break;
 			}
-			if(!src.GetToken(token))
-			{
-				return false;
-			}
+			status = src.GetToken(token);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			tokens.push_back(token);
 		}
-		if(tokens.empty())
-		{
-			return false;
-		}
+		RET_ON_FAIL(!tokens.empty(), EStatus::FAIL);
 
-		return true;
+		return EStatus::SUCCESS;
 	}
 
 	template<typename Source, typename Token>
-	bool ReadBlockStart(Source& src, const ParserConfiguration<Token>& config)
+	EStatus ReadBlockStart(Source& src, const ParserConfiguration<Token>& config)
 	{
-		if(!SkipTokens<Source, Token>(src, config))
-		{
-			return false;
-		}
+		auto status = SkipTokens<Source, Token>(src, config);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+
 		Token token;
-		if(!src.GetToken(token) || !config.IsBlockStart(token))
+		status = src.GetToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		if(!config.IsBlockStart(token))
 		{
-			return false;
+			return EStatus::FAIL;
 		}
-		return true;
+		return EStatus::SUCCESS;
 	}
 
 	template<typename Source, typename Token>
-	bool ReadBlockEnd(Source& src, const ParserConfiguration<Token>& config)
+	EStatus ReadBlockEnd(Source& src, const ParserConfiguration<Token>& config)
 	{
-		if(!SkipTokens<Source, Token>(src, config))
-		{
-			return false;
-		}
+		auto status = SkipTokens<Source, Token>(src, config);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		Token token;
-		if(!src.GetToken(token) || !config.IsBlockEnd(token))
+		status = src.GetToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		if(!config.IsBlockEnd(token))
 		{
-			return false;
+			return EStatus::FAIL;
 		}
-		return true;
+		return EStatus::SUCCESS;
 	}
 	template<typename Source, typename Token>
-	bool ReadArrayStart(Source& src, const ParserConfiguration<Token>& config, bool& isArrayStart)
+	EStatus ReadArrayStart(Source& src, const ParserConfiguration<Token>& config, bool& isArrayStart)
 	{
-		if(!SkipTokens<Source, Token>(src, config))
-		{
-			return false;
-		}
+		auto status = SkipTokens<Source, Token>(src, config);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		Token token;
-		if(!src.PeekToken(token))
-		{
-			return false;
-		}
+		status = src.PeekToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		isArrayStart = config.IsArrayStart(token);
 		if(!isArrayStart)
 		{
-			return true;
+			return EStatus::SUCCESS;
 		}
-		if(!src.GetToken(token))
-		{
-			return false;
-		}
-		return true;
+		status = src.GetToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		return EStatus::SUCCESS;
 	}
 	template<typename Source, typename Token>
-	bool ReadArrayEnd(Source& src, const ParserConfiguration<Token>& config, bool& isArrayEnd)
+	EStatus ReadArrayEnd(Source& src, const ParserConfiguration<Token>& config, bool& isArrayEnd)
 	{
-		if(!SkipTokens<Source, Token>(src, config))
-		{
-			return false;
-		}
+		auto status = SkipTokens<Source, Token>(src, config);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		Token token;
-		if(!src.PeekToken(token))
-		{
-			return false;
-		}
+		status = src.PeekToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		isArrayEnd = config.IsArrayEnd(token);
 		if(!isArrayEnd)
 		{
-			return true;
+			return EStatus::SUCCESS;
 		}
-		if(!src.GetToken(token))
-		{
-			return false;
-		}
-		return true;
+		status = src.GetToken(token);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		return EStatus::SUCCESS;
 	}
 	template<typename Source, typename Token>
-	bool ReadArrayDecl(Source& src, const ParserConfiguration<Token>& config, bool& isArray)
+	EStatus ReadArrayDecl(Source& src, const ParserConfiguration<Token>& config, bool& isArray)
 	{
 		bool isArrayStart = false;
-		if(!ReadArrayStart(src, config, isArrayStart))
-		{
-			isArray = false;
-			return false;
-		}
+		EStatus status = ReadArrayStart(src, config, isArrayStart);
+		RET_ON_FAIL(status == EStatus::SUCCESS, status);
 		if(!isArrayStart)
 		{
 			isArray = false;
-			return true;
+			return EStatus::SUCCESS;
 		}
 		bool isArrayEnd = false;
-		if(!ReadArrayEnd(src, config, isArrayEnd) || !isArrayEnd)
+		status = ReadArrayEnd(src, config, isArrayEnd);
+		if(status != EStatus::SUCCESS || !isArrayEnd)
 		{
-			return false;
+			return status;
 		}
 
 		isArray = true;
-		return true;
+		return EStatus::SUCCESS;
 	}
 }

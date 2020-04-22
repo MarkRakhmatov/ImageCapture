@@ -1,4 +1,7 @@
 #pragma once
+#include "CodeGeneration.h"
+#include "ParserUtils.h"
+
 #include <fstream>
 #include <string>
 
@@ -11,35 +14,30 @@ namespace Parser
 		FileSource(const std::basic_string<Token>& filename)
 		: mFile(filename)
 		{}
-		bool PeekToken(Token& token)
+		EStatus PeekToken(Token& token)
 		{
 			token = mFile.peek();
-			if(!mFile || mFile.eof())
-			{
-				return false;
-			}
+
+			RET_ON_SUCCESS(mFile.eof(), EStatus::FILE_END);
+			RET_ON_FAIL(mFile, EStatus::FAIL);
 			token = static_cast<Token>(token);
-			return true;
+			return EStatus::SUCCESS;
 		}
-		bool GetToken(Token& token)
+		EStatus GetToken(Token& token)
 		{
 			token = mFile.get();
-			if(!mFile || mFile.eof())
-			{
-				return false;
-			}
+			RET_ON_SUCCESS(mFile.eof(), EStatus::FILE_END);
+			RET_ON_FAIL(mFile, EStatus::FAIL);
 			token = static_cast<Token>(token);
-			return true;
+			return EStatus::SUCCESS;
 		}
 		template<typename T>
-		bool Read(T* data)
+		EStatus Read(T* data)
 		{
-			if(!data)
-			{
-				return false;
-			}
+			RET_ON_FAIL(data, EStatus::FAIL);
 			mFile >> *data;
-			return !mFile.fail();
+			RET_ON_FAIL(mFile, EStatus::FAIL);
+			return EStatus::SUCCESS;
 		}
 	private:
 		std::basic_ifstream<Token> mFile;

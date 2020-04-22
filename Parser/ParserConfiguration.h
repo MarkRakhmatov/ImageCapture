@@ -8,7 +8,7 @@
 
 namespace Parser
 {
-	template<typename Token=char>
+	template<typename Token>
 	class ParserConfiguration
 	{
 	public:
@@ -120,7 +120,7 @@ namespace Parser
 
 		bool IsLetter(Token token) const
 		{
-			return (mUppercaseLetters.first <= token && token<=mUppercaseLetters.second)
+			return (mUppercaseLetters.first <= token && token <= mUppercaseLetters.second)
 					|| (mLowercaseLetters.first <= token && token<=mLowercaseLetters.second);
 		}
 		bool IsSeparator(Token token) const
@@ -153,8 +153,9 @@ namespace Parser
 				{
 					{"Type", "int32"},
 					{"Type", "char"},
-					{"Type", "string"}},
-				{' ', '\n'},
+					{"Type", "string"}
+				},
+				{' ', '\n', '\t'},
 				{'{','}'},
 				{'\"','\"'},
 				{'\'', '\''},

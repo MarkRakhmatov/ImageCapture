@@ -1,5 +1,6 @@
 #pragma once
 #include "ParserConfiguration.h"
+#include "ParserUtils.h"
 #include "TypeDeclarationParser.h"
 #include "TypeDataParser.h"
 #include "ObjectHandler.h"
@@ -10,20 +11,18 @@
 
 namespace Parser
 {
-	template<typename Source, typename Token=char>
-	class Parser
+	template<typename Source, typename Token>
+	class ObjectParser
 	{
 	public:
 		using TypeName = std::basic_string<Token>;
 		using ObjectName = std::basic_string<Token>;
 
-		bool Parse(Source& src, ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
+		EStatus Parse(Source& src, ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
 		{
 			bool isTypeDecl = false;
-			if(!IsTypeDeclaration(src, config, objDesc, isTypeDecl))
-			{
-				return false;
-			}
+			EStatus status = IsTypeDeclaration(src, config, objDesc, isTypeDecl);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			if(isTypeDecl)
 			{
 				return ReadTypeDecl(src, config, objDesc);
@@ -31,26 +30,22 @@ namespace Parser
 			return ParseObject(src, config, objDesc);
 		}
 	private:
-		bool IsTypeDeclaration(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc, bool& isTypeDecl)
+		EStatus IsTypeDeclaration(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc, bool& isTypeDecl)
 		{
-			if(!ReadWord(src, config, objDesc.typeName))
-			{
-				return false;
-			}
+			EStatus status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, objDesc.typeName);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			if(config.IsTypeDecl(objDesc.typeName))
 			{
 				isTypeDecl = true;
-				return true;
+				return EStatus::SUCCESS;
 			}
 			isTypeDecl = false;
-			return true;
+			return EStatus::FAIL;
 		}
-		bool ParseObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
+		EStatus ParseObject(Source& src, const ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
 		{
-			if(!ReadWord(src, config, objDesc.objName))
-			{
-				return false;
-			}
+			EStatus status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, objDesc.objName);
+			RET_ON_FAIL(status == EStatus::SUCCESS, status);
 			return mDataParser.ReadObject(src, config, objDesc);
 		}
 	private:

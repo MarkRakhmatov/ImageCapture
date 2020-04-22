@@ -1,45 +1,19 @@
-int32 arr[]{1, 2, 3, 4, 5}
-int32 num { 228   }
-char ch{'c'}
-char chAray[]{'c', 'b', 'a'}
-string str{"j;hh;pjp;huohuo;hupoh}}}lnlbhlllllllhn)))"}
-string strArr[]{"aaa", "bbb", "ccc"}
-
-Type GeneralSettings
-{
-	string imageSrcType;
-	string imageSrcName;
-}
-
-Type Matrix
-{
-	Array Array Int matrixData;
-}  
-
-; TODO: implement parsing by sections
-; TODO: add settings to setup image source (folder or device) 
-; [Image processing]
-; handler type
-section ProcessingSettings
-{
-	String processingType{"Convolution"};
-	Matrix edgeKernel
-	{
-		{-25, 0, 0, 0, 0, 0, 0, 0, -25},
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 0, 0, 0, 0, 20, 0, 0, 0, 0 },
-		{ 0, 0, 0, 20, 20, 20, 0, 0, 0 },
-		{ 0, 0, 0, 0, 20, 0, 0, 0, 0 },
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{-25, 0, 0, 0, 0, 0, 0, 0, -25}
-	};
+	string imageSrcType{"Device"}
+	string imageSrcName{"device0"}
 	
-	String smoothKernel
+	string kernels[]
 	{
-		 "0.111  0.111  0.111
+		"-25 0 0 0 0 0 0 0 -25
+		 0 0 0 0 0 0 0 0 0
+		 0 0 0 0 0 0 0 0 0
+		 0 0 0 0 20 0 0 0 0
+		 0 0 0 20 20 20 0 0 0
+		 0 0 0 0 20 0 0 0 0
+		 0 0 0 0 0 0 0 0 0
+		 0 0 0 0 0 0 0 0 0 
+		-25 0 0 0 0 0 0 0 -25",
+		
+		"0.111  0.111  0.111
 		 0.111  0.111  0.111
 		 0.111  0.111  0.111"
 	}
-}
