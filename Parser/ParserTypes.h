@@ -1,13 +1,14 @@
 #pragma once
+#include <stdint.h>
 #include <vector>
 
 namespace Parser
 {
-	template<typename Token=char>
+	template<typename Token>
 	using Tokens = std::vector<Token>;
 
 
-	template<typename Token=char>
+	template<typename Token>
 	using Brackets = std::pair<Token, Token>;
 
 	enum class EStatus
@@ -15,5 +16,12 @@ namespace Parser
 		SUCCESS,
 		FAIL,
 		FILE_END
+	};
+
+	enum EType : uint32_t
+	{
+		INT,
+		CHAR,
+		STRING
 	};
 }

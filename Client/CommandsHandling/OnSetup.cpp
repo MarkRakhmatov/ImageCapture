@@ -59,7 +59,7 @@ bool SendFilteringSettings(Socket& sock)
   {
 	  Parser::ObjectDescriptor<char> objDesc;
 	  Parser::EStatus status = parser.Parse(fileSource, config, objDesc);
-	  RET_ON_SUCCESS(status == Parser::EStatus::FAIL, false);
+	  RET_ON_TRUE(status == Parser::EStatus::FAIL, false);
 	  if(status == Parser::EStatus::FILE_END)
 	  {
 		  break;
@@ -85,7 +85,7 @@ OnSetup::SendRequest(Socket& sock)
       std::cout << "Failed to send command!" << std::endl;
       return EConnectionStatus::FAIL;
   }
-  RET_ON_FAIL(SendFilteringSettings(sock), EConnectionStatus::FAIL);
+  RET_ON_FALSE(SendFilteringSettings(sock), EConnectionStatus::FAIL);
   return EConnectionStatus::SUCCESS;
 }
 

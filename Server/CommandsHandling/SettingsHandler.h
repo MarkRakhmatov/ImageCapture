@@ -1,11 +1,12 @@
 #pragma once
 #include "Socket.h"
 #include "ImageProcessing/ImageProcessor.h"
+#include "ObjectHandler.h"
 
 #include <memory>
 #include <vector>
 
-using Settings = std::vector<ConvKernel>;
+using Settings = std::vector<Parser::ObjectDescriptor<char>>;
 
 class SettingsHandler
 {

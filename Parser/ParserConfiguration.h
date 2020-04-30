@@ -1,5 +1,7 @@
 #pragma once
 #include "ObjectHandler.h"
+#include "TypeInfo.h"
+#include "ReservedTypesParser.h"
 
 #include <vector>
 #include <string>
@@ -8,13 +10,13 @@
 
 namespace Parser
 {
-	template<typename Token>
+	template<typename Source, typename Token>
 	class ParserConfiguration
 	{
 	public:
 		ParserConfiguration()=default;
 		ParserConfiguration(const std::basic_string<Token>& typeName,
-				const std::vector<ObjectDescriptor<Token>>& types,
+				const std::set<TypeInfo<Source, Token>>& types,
 				const std::vector<Token>& ignoreTokens,
 				const std::pair<Token, Token>& objDataBrackets,
 				const std::pair<Token, Token>& stringBrackets,
@@ -37,6 +39,7 @@ namespace Parser
 		, mSeparator(separator)
 		{
 		}
+
 		bool AddType(const ObjectDescriptor<Token>& type)
 		{
 			auto iter = mTypes.find(type);
@@ -48,34 +51,26 @@ namespace Parser
 			return true;
 		}
 
-		bool GetType(const std::basic_string<Token>& typeName, ObjectDescriptor<Token>& type) const
-		{
-			auto iter = std::find_if(mTypes.begin(), mTypes.end(),
-					[&typeName](const ObjectDescriptor<Token>& type)
-					{
-						return type.objName == typeName;
-					});
-			if(iter == mTypes.end())
-			{
-				return false;
-			}
-			type = *iter;
-			return true;
-		}
 		bool IsSkipToken(Token token) const
 		{
 			auto iter = std::find(mIgnoreTokens.begin(), mIgnoreTokens.end(), token);
 			return iter != mIgnoreTokens.end();
 		}
-		bool IsReservedType(const std::basic_string<Token>& typeName) const
+		uint32_t GetTypeID(const std::basic_string<Token>& typeName)
 		{
-			auto iter = std::find_if(mTypes.begin(), mTypes.end(),
-								[&typeName](const ObjectDescriptor<Token>& type)
-								{
-									return type.objName == typeName;
-								});
-			return iter != mTypes.end();
+			auto iter = mTypes.find(typeName);
+			if(iter == mTypes.end())
+			{
+				return 0;
+			}
+			return iter->second;
 		}
+
+		ReaderFunc GetTypeReader(uint32_t typeID)
+		{
+
+		}
+
 		bool IsBlockStart(Token token) const
 		{
 			return token == mObjDataBrackets.first;
@@ -85,6 +80,7 @@ namespace Parser
 		{
 			return token == mObjDataBrackets.second;
 		}
+
 		bool IsStringStart(Token token) const
 		{
 			return token == mStringBrackets.first;
@@ -134,7 +130,7 @@ namespace Parser
 		}
 	private:
 		std::basic_string<Token> mTypeName;
-		std::set<ObjectDescriptor<Token>> mTypes;
+		std::set<TypeInfo<Source, Token>> mTypes;
 		std::vector<Token> mIgnoreTokens;
 		std::pair<Token, Token> mObjDataBrackets;
 		std::pair<Token, Token> mStringBrackets;
@@ -146,14 +142,16 @@ namespace Parser
 		Token mSeparator;
 	};
 
-	ParserConfiguration<char> GetDefaultParserConfig()
+	template<typename Source>
+	ParserConfiguration<Source, char> GetDefaultParserConfig()
 	{
-		ParserConfiguration<char> config(
+		ParserConfiguration<Source, char> config(
 				"Type",
 				{
-					{"Type", "int32"},
-					{"Type", "char"},
-					{"Type", "string"}
+					{ "int32", EType::INT, &ReadNumericObject<int32_t, Source, char>},
+					{ "int32", EType::INT, &ReadNumericObject<int32_t, Source, char>},
+					{ "char", EType::CHAR, &ReadCharObject<Source, char>},
+					{ "string", EType::STRING, &ReadStringObject<Source, char>}
 				},
 				{' ', '\n', '\t'},
 				{'{','}'},

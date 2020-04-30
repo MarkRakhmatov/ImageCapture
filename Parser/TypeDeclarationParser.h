@@ -9,28 +9,28 @@
 namespace Parser
 {
 	template<typename Source, typename Token>
-	EStatus ReadTypeDecl(Source& src, ParserConfiguration<Token>& config, ObjectDescriptor<Token>& objDesc)
+	EStatus ReadTypeDecl(Source& src, ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& objDesc)
 	{
 		// read typename
 		EStatus status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, objDesc.objName);
-		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 		// read block start
 		status = ReadBlockStart<Source, Token>(src, config);
-		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 		// read subobjects
 		for(;;)
 		{
 			ObjectDescriptor<Token> subObj;
 
 			status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, subObj.typeName);
-			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, subObj.objName);
-			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			Token token;
 			status = SkipTokens<Source, Token>(src, config);
-			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			status = src.PeekToken(token);
-			RET_ON_FAIL(status == EStatus::SUCCESS, status);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			if(config.IsBlockEnd(token))
 			{
 				break;

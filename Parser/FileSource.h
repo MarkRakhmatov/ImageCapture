@@ -19,7 +19,7 @@ namespace Parser
 			token = mFile.peek();
 
 			RET_ON_SUCCESS(mFile.eof(), EStatus::FILE_END);
-			RET_ON_FAIL(mFile, EStatus::FAIL);
+			RET_ON_FALSE(mFile, EStatus::FAIL);
 			token = static_cast<Token>(token);
 			return EStatus::SUCCESS;
 		}
@@ -27,16 +27,16 @@ namespace Parser
 		{
 			token = mFile.get();
 			RET_ON_SUCCESS(mFile.eof(), EStatus::FILE_END);
-			RET_ON_FAIL(mFile, EStatus::FAIL);
+			RET_ON_FALSE(mFile, EStatus::FAIL);
 			token = static_cast<Token>(token);
 			return EStatus::SUCCESS;
 		}
 		template<typename T>
 		EStatus Read(T* data)
 		{
-			RET_ON_FAIL(data, EStatus::FAIL);
+			RET_ON_FALSE(data, EStatus::FAIL);
 			mFile >> *data;
-			RET_ON_FAIL(mFile, EStatus::FAIL);
+			RET_ON_FALSE(mFile, EStatus::FAIL);
 			return EStatus::SUCCESS;
 		}
 	private:

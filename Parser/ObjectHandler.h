@@ -2,7 +2,6 @@
 #include "CodeGeneration.h"
 #include "ParserTypes.h"
 
-#include <stdint.h>
 #include <vector>
 #include <string>
 #include <cstring>
@@ -13,10 +12,10 @@ namespace Parser
 	template<typename Token>
 	struct ObjectDescriptor
 	{
-		std::basic_string<Token> typeName;
-		std::basic_string<Token> objName;
+		uint32_t type;
+		uint8_t arrayDepth;
+		std::basic_string<Token> name;
 		std::vector<Byte> objectData;
-		std::vector<ObjectDescriptor> subObjects;
 	};
 
 	template<typename Token>
@@ -30,7 +29,7 @@ namespace Parser
 	{
 		T data;
 		auto status = src.Read(&data);
-		RET_ON_FAIL(status == EStatus::SUCCESS, status);
+		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 		size_t origSize = objDesc.objectData.size();
 		objDesc.objectData.resize( origSize + sizeof(T));
 
