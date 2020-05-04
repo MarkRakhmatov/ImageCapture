@@ -4,6 +4,7 @@
 #include "ParserUtils.h"
 #include "TypeDeclarationParser.h"
 #include "ObjectHandler.h"
+#include "ArrayReader.h"
 
 #include <string>
 #include <vector>
@@ -11,14 +12,14 @@
 
 namespace Parser
 {
-	template<typename Source, typename Token>
+	template<typename Source, typename Char>
 	class ObjectParser
 	{
 	public:
-		using TypeName = std::basic_string<Token>;
-		using ObjectName = std::basic_string<Token>;
+		using TypeName = std::basic_string<Char>;
+		using ObjectName = std::basic_string<Char>;
 
-		EStatus Parse(Source& src, ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& objDesc)
+		EStatus Parse(Source& src, ParserConfiguration<Source, Char>& config, ObjectDescriptor<Char>& objDesc)
 		{
 			bool isTypeDecl = false;
 			EStatus status = IsTypeDeclaration(src, config, objDesc, isTypeDecl);
@@ -30,10 +31,10 @@ namespace Parser
 			return ParseObject(src, config, objDesc);
 		}
 	private:
-		EStatus IsTypeDeclaration(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& objDesc, bool& isTypeDecl)
+		EStatus IsTypeDeclaration(Source& src, const ParserConfiguration<Source, Char>& config, ObjectDescriptor<Char>& objDesc, bool& isTypeDecl)
 		{
-			std::basic_string<Token> str;
-			EStatus status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, str);
+			std::basic_string<Char> str;
+			EStatus status = ReadWord<Source, std::basic_string<Char>, Char>(src, config, str);
 			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			if(config.IsTypeDecl(str))
 			{
@@ -42,32 +43,23 @@ namespace Parser
 			}
 
 			objDesc.type = config.GetTypeID(str);
-			RET_ON_FALSE(objDesc.type != 0, status);
+			RET_ON_TRUE(objDesc.type == EType::INVALID, status);
 
 			isTypeDecl = false;
 			return EStatus::SUCCESS;
 		}
 
-		EStatus ParseObject(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& objDesc)
+		EStatus ParseObject(Source& src, const ParserConfiguration<Source, Char>& config, ObjectDescriptor<Char>& objDesc)
 		{
-			EStatus status = ReadWord<Source, std::basic_string<Token>, Token>(src, config, objDesc.objName);
+			EStatus status = ReadWord<Source, std::basic_string<Char>, Char>(src, config, objDesc.name);
 			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 
-			uint8_t arrayDepth{0};
-			status = ReadArrayDepth(src, config, arrayDepth);
-
-			status = ReadBlockStart(src, config);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
+			status = ReadArrayDepth(src, config, objDesc.arrayDepth);
 
 			auto TypeReader = config.GetTypeReader(objDesc.type);
 			RET_ON_FALSE(TypeReader, EStatus::FAIL);
 
-			status = TypeReader(src, config, objDesc);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			status = ReadBlockEnd(src, config);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-			return EStatus::SUCCESS;
+			return ReadArray(src, config, TypeReader, objDesc);
 		}
 	};
 }

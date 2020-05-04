@@ -5,17 +5,23 @@
 namespace Parser
 {
 
-	template<typename Source, typename Token>
+	template<typename Source, typename Char>
 	class ParserConfiguration;
 
-	template<typename Source, typename Token>
-	using ReaderFunc = EStatus(*)(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj);
+	template<typename Source, typename Char>
+	using ObjectDataReaderFunc = EStatus(*)(Source& src, const ParserConfiguration<Source, Char>& config, ObjectData& obj);
 
-	template<typename Source, typename Token>
+	template<typename Source, typename Char>
 	struct TypeInfo
 	{
-		std::basic_string<Token> name;
+		std::basic_string<Char> name;
 		EType type;
-		ReaderFunc<Source, Token> reader;
+		ObjectDataReaderFunc<Source, Char> reader;
 	};
+
+	template<typename Source, typename Char>
+	bool operator < (const TypeInfo<Source, Char>& lhs, const TypeInfo<Source, Char>& rhs)
+	{
+		return lhs.type < rhs.type;
+	}
 }

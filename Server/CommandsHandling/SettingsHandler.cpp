@@ -26,7 +26,7 @@ void ReadConvHandlers(std::stringstream& ss, Settings& settings)
 	settings.resize(handlersCount);
 	for(size_t i = 0 ; i < handlersCount; ++i)
 	{
-		ReadConvKernel(ss, settings[i]);
+		//ReadConvKernel(ss, settings[i]);
 	}
 }
 

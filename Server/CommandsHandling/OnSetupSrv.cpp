@@ -4,10 +4,11 @@
 
 EConnectionStatus ReadObject(Socket &sock, Parser::ObjectDescriptor<char>& obj)
 {
-	obj.typeName;
+	/*obj.typeName;
 	obj.objName;
 	obj.objectData;
-	obj.subObjects;
+	obj.subObjects;*/
+	return EConnectionStatus::FAIL;
 }
 
 EConnectionStatus OnSetupSrv::Handle(Socket &sock)

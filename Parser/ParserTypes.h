@@ -4,12 +4,13 @@
 
 namespace Parser
 {
-	template<typename Token>
-	using Tokens = std::vector<Token>;
+	using Byte = uint8_t;
+	template<typename Char>
+	using Chars = std::vector<Char>;
 
 
-	template<typename Token>
-	using Brackets = std::pair<Token, Token>;
+	template<typename Char>
+	using Brackets = std::pair<Char, Char>;
 
 	enum class EStatus
 	{
@@ -20,6 +21,8 @@ namespace Parser
 
 	enum EType : uint32_t
 	{
+		INVALID,
+		TYPE,
 		INT,
 		CHAR,
 		STRING

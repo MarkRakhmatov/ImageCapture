@@ -10,8 +10,8 @@
 
 namespace Parser
 {
-	template<typename Source, typename Token=char>
-	EStatus ReadCustomType(Source& src, const ParserConfiguration<Source, Token>& config, const ObjectDescriptor<Token>& typeObj, ObjectDescriptor<Token>& obj, bool isArray)
+	template<typename Source, typename Char>
+	EStatus ReadCustomType(Source& src, const ParserConfiguration<Source, Char>& config, const ObjectDescriptor<Char>& typeObj, ObjectDescriptor<Char>& obj, bool isArray)
 	{
 		return EStatus::FAIL;
 	}

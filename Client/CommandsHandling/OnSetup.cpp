@@ -53,7 +53,7 @@ bool SendFilteringSettings(Socket& sock)
   std::string settingsFileName("settings.txt");
   Parser::FileSource<char> fileSource(settingsFileName);
   Parser::ObjectParser<Parser::FileSource<char>, char> parser;
-  auto config = Parser::GetDefaultParserConfig();
+  auto config = Parser::GetDefaultParserConfig<Parser::FileSource<char>>();
   std::vector<Parser::ObjectDescriptor<char>> objects;
   for(;;)
   {
@@ -64,7 +64,7 @@ bool SendFilteringSettings(Socket& sock)
 	  {
 		  break;
 	  }
-	  if(config.IsTypeDecl(objDesc.typeName))
+	  if(config.IsTypeDecl(objDesc.type))
 	  {
 		  config.AddType(objDesc);
 		  continue;

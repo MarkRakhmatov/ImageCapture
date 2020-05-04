@@ -3,147 +3,90 @@
 #include <sstream>
 #include <algorithm>
 
-#include "TypeInfo.h"
+#include "ParserTypes.h"
 #include "ParserUtils.h"
 #include "ObjectHandler.h"
 
 namespace Parser
 {
-	template<typename Num, typename Source, typename Token>
-	EStatus ReadNumericObject(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj)
+	template<typename Num, typename Source, typename Char>
+	EStatus ReadNumericObject(Source& src, const ParserConfiguration<Source, Char>& config, ObjectData& objectData)
 	{
-		auto status = SkipTokens(src, config);
+		auto status = SkipChars(src, config);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		return ReadObjectData<Num, Source, Token>(src, obj);
+		Num num{};
+		status = src.Read(&num);
+		RET_ON_FALSE(status == EStatus::SUCCESS, status);
+
+		return objectData.AppendData(num);
 	}
 
-	template<typename Source, typename Token>
-	EStatus ReadCharObject(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj)
+	template<typename Source, typename Char>
+	EStatus ReadChar(Source& src, const ParserConfiguration<Source, Char>& config, Char& ch)
 	{
-		auto status = SkipTokens(src, config);
+		auto status = src.GetChar(ch);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		Token token;
-		status = src.GetToken(token);
+		if(config.IsEscapeSequenceStart(ch))
+		{
+			status = src.GetChar(ch);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
+			RET_ON_FALSE(config.IsSpecCharacter(ch), EStatus::FAIL);
+		}
+		return EStatus::SUCCESS;
+	}
+	template<typename Source, typename Char>
+	EStatus ReadCharObject(Source& src, const ParserConfiguration<Source, Char>& config, ObjectData& objectData)
+	{
+		auto status = SkipChars(src, config);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		if(!config.IsCharStart(token))
+		Char ch;
+		status = src.GetChar(ch);
+		RET_ON_FALSE(status == EStatus::SUCCESS, status);
+		if(!config.IsCharStart(ch))
 		{
 			return EStatus::FAIL;
 		}
 
-		status = src.GetToken(token);
+		status = ReadChar(src, config, ch);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 
-		obj.objectData.push_back(token);
-
-		status = src.GetToken(token);
+		status = objectData.AppendData(ch);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 
-		if(!config.IsCharEnd(token))
+		if(!config.IsCharEnd(ch))
 		{
 			return EStatus::FAIL;
 		}
 		return EStatus::SUCCESS;
 	}
 
-	template<typename Source, typename Token>
-	EStatus ReadStringObject(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj)
+	template<typename Source, typename Char>
+	EStatus ReadStringObject(Source& src, const ParserConfiguration<Source, Char>& config, ObjectData& objectData)
 	{
-		auto status = SkipTokens(src, config);
+		auto status = SkipChars(src, config);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 
-		Token token;
-		status = src.GetToken(token);
+		Char ch;
+		status = src.GetChar(ch);
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 
-		if(!config.IsStringStart(token))
+		if(!config.IsStringStart(ch))
 		{
 			return EStatus::FAIL;
 		}
 		for(;;)
 		{
-			status = src.GetToken(token);
+			status = ReadChar(src, config, ch);
 			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 
-			if(config.IsStringEnd(token))
+			if(config.IsStringEnd(ch))
 			{
 				break;
 			}
-			obj.objectData.push_back(token);
+
+			status = objectData.AppendData(ch);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 		}
 		return EStatus::SUCCESS;
-	}
-
-	template<typename Source, typename Token, ReaderFunc Reader>
-	EStatus ReadArrayBottom(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj)
-	{
-		auto status = ReadBlockStart(src, config);
-		RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-		for(;;)
-		{
-			status = ReaderFunc(src, config, obj);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			status = SkipTokens(src, config);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			Token token;
-			status = src.PeekToken(token);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			RET_ON_TRUE(!config.IsSeparator(token), EStatus::SUCCESS);
-
-			status = src.GetToken(token);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		}
-
-		return ReadBlockEnd(src, config);
-	}
-
-	template<typename Source, typename Token, ReaderFunc Reader>
-	EStatus ReadArrayImpl(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj, uint8_t arrayDepth)
-	{
-		auto status = EStatus::FAIL;
-		if(arrayDepth == 1)
-		{
-			return ReadArrayBottom(src, config, obj);
-		}
-
-		status = ReadBlockStart(src, config);
-		RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		--arrayDepth;
-		for(;;)
-		{
-			ReadArrayImpl(src, config, obj, arrayDepth);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			status = SkipTokens(src, config);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			Token token;
-			status = src.PeekToken(token);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
-			RET_ON_TRUE(!config.IsSeparator(token), EStatus::SUCCESS);
-
-			status = src.GetToken(token);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		}
-
-		return ReadBlockEnd(src, config);
-	}
-
-
-	template<typename Source, typename Token, ReaderFunc Reader>
-	EStatus ReadArray(Source& src, const ParserConfiguration<Source, Token>& config, ObjectDescriptor<Token>& obj)
-	{
-
-		auto status = EStatus::FAIL;
-		if(obj.arrayDepth == 0)
-		{
-			return ReaderFunc(src, config, obj);
-		}
-
-		return ReadArrayImpl(src, config, obj, obj.arrayDepth);
 	}
 }

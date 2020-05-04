@@ -81,7 +81,7 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
     SwapChain<ImageBuffer<unsigned char>> chain(&decomprBuffer, &resultBuffer);
     for(size_t i = 0; i < settings.size(); ++i)
     {
-        ConvHandler<unsigned char> convHandler
+        /*ConvHandler<unsigned char> convHandler
         (
         		settings[i]
         );
@@ -91,7 +91,7 @@ OnProcessImageSrv::ProcessImage(Socket& sock)
         ImageProcessor::Convolution(
         		originalBuff,
 				processedBuff,
-                convHandler);
+                convHandler);*/
     }
 
     auto compressedBuffer = JpegHelper::Compress(*chain.GetActive());
