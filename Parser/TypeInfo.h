@@ -1,6 +1,6 @@
 #pragma once
 #include "ParserTypes.h"
-#include "ObjectHandler.h"
+#include "ObjectDescriptor.h"
 
 namespace Parser
 {
@@ -17,6 +17,7 @@ namespace Parser
 		std::basic_string<Char> name;
 		EType type;
 		ObjectDataReaderFunc<Source, Char> reader;
+		ObjectData data;
 	};
 
 	template<typename Source, typename Char>

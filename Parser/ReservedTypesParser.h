@@ -5,7 +5,7 @@
 
 #include "ParserTypes.h"
 #include "ParserUtils.h"
-#include "ObjectHandler.h"
+#include "ObjectDescriptor.h"
 
 namespace Parser
 {

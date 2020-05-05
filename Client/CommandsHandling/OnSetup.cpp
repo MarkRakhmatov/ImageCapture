@@ -8,6 +8,8 @@
 #include <fstream>
 #include <string>
 
+using namespace Parser;
+
 EConnectionStatus
 OnSetup::Handle(Socket& sock)
 {
@@ -19,59 +21,50 @@ OnSetup::Handle(Socket& sock)
   return GetResponse(sock);
 }
 
-/*bool SkipLine(const std::string& line)
+EStatus ReadSettings(FileSource<char>& fileSource,
+		ParserConfiguration<FileSource<char>, char>& config,
+		std::vector<ObjectDescriptor<char>>& objects)
 {
-	if(line.empty())
+	ObjectParser<FileSource<char>, char> parser;
+	for(;;)
 	{
-		return true;
-	}
-	if(line.find(";", 0) == 0)
-	{
-		return true;
-	}
-	return false;
-}*/
-
-/*std::string ReadSettings(const std::string& filename)
-{
-	std::ifstream settings(filename);
-	std::string settingsStr;
-	for(std::string temp; std::getline(settings, temp);)
-	{
-		if(SkipLine(temp))
+		ObjectDescriptor<char> objDesc;
+		EStatus status = parser.Parse(fileSource, config, objDesc);
+		RET_ON_TRUE(status == EStatus::FAIL, status);
+		if(status == EStatus::FILE_END)
 		{
+			break;
+		}
+		if(config.IsTypeDecl(objDesc.type))
+		{
+			config.AddType(objDesc);
 			continue;
 		}
-	    settingsStr += " " + temp;
+		objects.push_back(objDesc);
 	}
-	settings.close();
-	return settingsStr;
-}*/
+	return EStatus::SUCCESS;
+}
 
-bool SendFilteringSettings(Socket& sock)
+EConnectionStatus SendFilteringSettings(Socket& sock)
 {
-  std::string settingsFileName("settings.txt");
-  Parser::FileSource<char> fileSource(settingsFileName);
-  Parser::ObjectParser<Parser::FileSource<char>, char> parser;
-  auto config = Parser::GetDefaultParserConfig<Parser::FileSource<char>>();
-  std::vector<Parser::ObjectDescriptor<char>> objects;
-  for(;;)
-  {
-	  Parser::ObjectDescriptor<char> objDesc;
-	  Parser::EStatus status = parser.Parse(fileSource, config, objDesc);
-	  RET_ON_TRUE(status == Parser::EStatus::FAIL, false);
-	  if(status == Parser::EStatus::FILE_END)
-	  {
-		  break;
-	  }
-	  if(config.IsTypeDecl(objDesc.type))
-	  {
-		  config.AddType(objDesc);
-		  continue;
-	  }
-	  objects.push_back(objDesc);
-  }
-  return true;
+	std::string settingsFileName("settings.txt");
+	FileSource<char> fileSource(settingsFileName);
+	ParserConfiguration<FileSource<char>, char> config = GetDefaultParserConfig<FileSource<char>>();
+	std::vector<ObjectDescriptor<char>> objects;
+	EStatus status = ReadSettings(fileSource, config, objects);
+	switch(status)
+	{
+	case EStatus::SUCCESS:
+		break;
+	case EStatus::FILE_END:
+	case EStatus::FAIL:
+	default:
+		return EConnectionStatus::FAIL;
+	}
+
+	//WriteObjects(sock, objects);
+
+	return EConnectionStatus::SUCCESS;
 }
 
 EConnectionStatus
@@ -85,8 +78,8 @@ OnSetup::SendRequest(Socket& sock)
       std::cout << "Failed to send command!" << std::endl;
       return EConnectionStatus::FAIL;
   }
-  RET_ON_FALSE(SendFilteringSettings(sock), EConnectionStatus::FAIL);
-  return EConnectionStatus::SUCCESS;
+
+  return SendFilteringSettings(sock);
 }
 
 EConnectionStatus

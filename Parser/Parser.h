@@ -3,7 +3,7 @@
 #include "ParserConfiguration.h"
 #include "ParserUtils.h"
 #include "TypeDeclarationParser.h"
-#include "ObjectHandler.h"
+#include "ObjectDescriptor.h"
 #include "ArrayReader.h"
 
 #include <string>
@@ -53,7 +53,7 @@ namespace Parser
 		{
 			EStatus status = ReadWord<Source, std::basic_string<Char>, Char>(src, config, objDesc.name);
 			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-
+			// TODO: check that type name is unique
 			status = ReadArrayDepth(src, config, objDesc.arrayDepth);
 
 			auto TypeReader = config.GetTypeReader(objDesc.type);

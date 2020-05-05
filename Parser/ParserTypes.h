@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <vector>
+#include <utility>
 
 namespace Parser
 {
@@ -25,6 +26,8 @@ namespace Parser
 		TYPE,
 		INT,
 		CHAR,
-		STRING
+		STRING,
+
+		LAST_RESERVED
 	};
 }

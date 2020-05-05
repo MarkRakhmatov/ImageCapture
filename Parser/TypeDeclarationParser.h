@@ -2,7 +2,7 @@
 #include "CodeGeneration.h"
 #include "ParserConfiguration.h"
 #include "ParserUtils.h"
-#include "ObjectHandler.h"
+#include "ObjectDescriptor.h"
 
 #include <string>
 

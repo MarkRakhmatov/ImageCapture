@@ -2,7 +2,7 @@
 #include "CodeGeneration.h"
 #include "ParserTypes.h"
 #include "ParserUtils.h"
-#include "ObjectHandler.h"
+#include "ObjectDescriptor.h"
 namespace Parser
 {
 	template<typename Source, typename Char>

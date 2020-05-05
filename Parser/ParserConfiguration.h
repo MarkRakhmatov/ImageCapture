@@ -1,5 +1,6 @@
 #pragma once
-#include "ObjectHandler.h"
+#include "ParserTypes.h"
+#include "ObjectDescriptor.h"
 #include "TypeInfo.h"
 #include "ReservedTypesParser.h"
 
@@ -44,15 +45,14 @@ namespace Parser
 		{
 		}
 
-		bool AddType(const ObjectDescriptor<Char>& type)
+		void AddType(const ObjectDescriptor<Char>& type)
 		{
-			/*auto iter = mTypes.find(type);
-			if(iter != mTypes.end())
-			{
-				return false;
-			}
-			mTypes.insert(type);*/
-			return true;
+			TypeInfo<Source, Char> typeInfo;
+			typeInfo.name = type.name;
+			++mCustomTypesCount;
+			typeInfo.type = static_cast<EType>(static_cast<uint32_t>(EType::LAST_RESERVED) + mCustomTypesCount);
+			typeInfo.data = std::move(type.objectData);
+			mTypes.insert(typeInfo);
 		}
 		EType GetTypeID(const std::basic_string<Char>& typeName) const
 		{
@@ -157,7 +157,7 @@ namespace Parser
 	private:
 		std::basic_string<Char> mTypeName;
 		std::set<TypeInfo<Source, Char>> mTypes;
-
+		uint32_t mCustomTypesCount{};
 		std::vector<Char> mIgnoreChars;
 		std::vector<Char> mSpecCharacters;
 		std::pair<Char, Char> mObjDataBrackets;
