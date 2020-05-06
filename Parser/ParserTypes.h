@@ -17,7 +17,8 @@ namespace Parser
 	{
 		SUCCESS,
 		FAIL,
-		FILE_END
+		INVALID_TYPE,
+		DATA_END
 	};
 
 	enum EType : uint32_t

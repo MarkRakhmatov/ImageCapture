@@ -33,6 +33,11 @@ namespace Parser
 		{
 			return subData;
 		}
+
+		ObjectData* At(uint32_t index)
+		{
+			return &subData[index];
+		}
 	private:
 		std::vector<Byte> data;
 		std::vector<ObjectData> subData;

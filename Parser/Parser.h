@@ -21,8 +21,10 @@ namespace Parser
 
 		EStatus Parse(Source& src, ParserConfiguration<Source, Char>& config, ObjectDescriptor<Char>& objDesc)
 		{
+			EStatus status = SkipChars(src, config);
+			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			bool isTypeDecl = false;
-			EStatus status = IsTypeDeclaration(src, config, objDesc, isTypeDecl);
+			status = IsTypeDeclaration(src, config, objDesc, isTypeDecl);
 			RET_ON_FALSE(status == EStatus::SUCCESS, status);
 			if(isTypeDecl)
 			{
@@ -43,7 +45,7 @@ namespace Parser
 			}
 
 			objDesc.type = config.GetTypeID(str);
-			RET_ON_TRUE(objDesc.type == EType::INVALID, status);
+			RET_ON_TRUE(objDesc.type == EType::INVALID, EStatus::INVALID_TYPE);
 
 			isTypeDecl = false;
 			return EStatus::SUCCESS;

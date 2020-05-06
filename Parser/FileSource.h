@@ -18,14 +18,14 @@ namespace Parser
 		{
 			ch = static_cast<Char>(mFile.peek());
 
-			RET_ON_TRUE(mFile.eof(), EStatus::FILE_END);
+			RET_ON_TRUE(mFile.eof(), EStatus::DATA_END);
 			RET_ON_FALSE(mFile, EStatus::FAIL);
 			return EStatus::SUCCESS;
 		}
 		EStatus GetChar(Char& ch)
 		{
 			ch = static_cast<Char>(mFile.get());
-			RET_ON_TRUE(mFile.eof(), EStatus::FILE_END);
+			RET_ON_TRUE(mFile.eof(), EStatus::DATA_END);
 			RET_ON_FALSE(mFile, EStatus::FAIL);
 			return EStatus::SUCCESS;
 		}

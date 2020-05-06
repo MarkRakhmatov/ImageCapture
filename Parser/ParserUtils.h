@@ -16,17 +16,6 @@ namespace Parser
 	}
 
 	template<typename Source, typename Char>
-	EStatus ReadChars(Source& src, const Chars<Char>& chars)
-	{
-		for(auto& ch : chars)
-		{
-			auto status = src.GetChar(ch);
-			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-		}
-		return EStatus::SUCCESS;
-	}
-
-	template<typename Source, typename Char>
 	EStatus SkipChars(Source& src, const ParserConfiguration<Source, Char>& config)
 	{
 		Char ch;
@@ -105,6 +94,7 @@ namespace Parser
 		}
 		return EStatus::SUCCESS;
 	}
+
 	template<typename Source, typename Char>
 	EStatus ReadArrayStart(Source& src, const ParserConfiguration<Source, Char>& config, bool& isArrayStart)
 	{
@@ -122,6 +112,7 @@ namespace Parser
 		RET_ON_FALSE(status == EStatus::SUCCESS, status);
 		return EStatus::SUCCESS;
 	}
+
 	template<typename Source, typename Char>
 	EStatus ReadArrayEnd(Source& src, const ParserConfiguration<Source, Char>& config, bool& isArrayEnd)
 	{

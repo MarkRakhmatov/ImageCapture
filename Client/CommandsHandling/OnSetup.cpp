@@ -3,8 +3,10 @@
 #include "Command.h"
 #include "FileSource.h"
 #include "CodeGeneration.h"
+#include "ObjectDescriptor.h"
 #include "ParserConfiguration.h"
 #include "ParserUtils.h"
+
 #include <fstream>
 #include <string>
 
@@ -31,7 +33,7 @@ EStatus ReadSettings(FileSource<char>& fileSource,
 		ObjectDescriptor<char> objDesc;
 		EStatus status = parser.Parse(fileSource, config, objDesc);
 		RET_ON_TRUE(status == EStatus::FAIL, status);
-		if(status == EStatus::FILE_END)
+		if(status == EStatus::DATA_END)
 		{
 			break;
 		}
@@ -45,6 +47,26 @@ EStatus ReadSettings(FileSource<char>& fileSource,
 	return EStatus::SUCCESS;
 }
 
+EStatus WriteObject(Socket& sock, ObjectDescriptor<char>& object)
+{
+	object.name;
+	object.type;
+	object.arrayDepth;
+	object.objectData;
+	return EStatus::FAIL;
+}
+
+EStatus WriteObjects(Socket& sock, std::vector<ObjectDescriptor<char>>& objects)
+{
+	EStatus status = EStatus::FAIL;
+	for(auto& object : objects)
+	{
+		status = WriteObject(sock, object);
+		RET_ON_TRUE(status == EStatus::FAIL, status);
+	}
+	return EStatus::FAIL;
+}
+
 EConnectionStatus SendFilteringSettings(Socket& sock)
 {
 	std::string settingsFileName("settings.txt");
@@ -56,7 +78,7 @@ EConnectionStatus SendFilteringSettings(Socket& sock)
 	{
 	case EStatus::SUCCESS:
 		break;
-	case EStatus::FILE_END:
+	case EStatus::DATA_END:
 	case EStatus::FAIL:
 	default:
 		return EConnectionStatus::FAIL;
