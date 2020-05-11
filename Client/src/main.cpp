@@ -5,15 +5,15 @@ int main()
 {
   for(;;)
   {
-      Client client;
+      ClientSide::Client client;
 
       auto status = client.Communicate();
-      if(status == EConnectionStatus::FAIL)
+      if(status == Communication::EConnectionStatus::FAIL)
       {
           //std::cout << "Communication fail!" << std::endl;
           continue;
       }
-      if(status == EConnectionStatus::SHUTDOWN)
+      if(status == Communication::EConnectionStatus::SHUTDOWN)
       {
           return 0;
       }

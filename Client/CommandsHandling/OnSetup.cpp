@@ -6,116 +6,148 @@
 #include "ObjectDescriptor.h"
 #include "ParserConfiguration.h"
 #include "ParserUtils.h"
+#include "CommunicationUtils.h"
 
 #include <fstream>
 #include <string>
 
-using namespace Parser;
 
-EConnectionStatus
-OnSetup::Handle(Socket& sock)
+namespace ClientSide
 {
-  EConnectionStatus status = SendRequest(sock);
-  if(status == EConnectionStatus::FAIL)
-  {
-      return status;
-  }
-  return GetResponse(sock);
-}
+	using namespace Communication;
+	using namespace Parser;
 
-EStatus ReadSettings(FileSource<char>& fileSource,
-		ParserConfiguration<FileSource<char>, char>& config,
-		std::vector<ObjectDescriptor<char>>& objects)
-{
-	ObjectParser<FileSource<char>, char> parser;
-	for(;;)
+	EConnectionStatus
+	OnSetup::Handle(Socket& sock)
 	{
-		ObjectDescriptor<char> objDesc;
-		EStatus status = parser.Parse(fileSource, config, objDesc);
-		RET_ON_TRUE(status == EStatus::FAIL, status);
-		if(status == EStatus::DATA_END)
+	  EConnectionStatus status = SendRequest(sock);
+	  RET_ON_TRUE(status == EConnectionStatus::FAIL, status);
+	  return GetResponse(sock);
+	}
+
+	bool SendObjectData(Socket& sock, const ObjectData& objData)
+	{
+		const auto& data = objData.GetRawData();
+		bool res = SendContainer(sock, data);
+		RET_ON_FALSE(res, false);
+		const auto& subData = objData.GetSubData();
+		uint64_t size = subData.size();
+		res = sock.SendData(&size);
+		RET_ON_FALSE(res, false);
+		for(uint64_t i = 0 ; i < size; ++i)
 		{
+			res = SendObjectData(sock, subData[i]);
+			RET_ON_FALSE(res, false);
+		}
+		return true;
+	}
+
+	bool WriteObject(Socket& sock, const ObjectDescriptor<char>& object)
+	{
+		bool res = SendString(sock, object.name);
+		RET_ON_FALSE(res, false);
+		res = sock.SendData(&object.type);
+		RET_ON_FALSE(res, false);
+		res = sock.SendData(&object.arrayDepth);
+		RET_ON_FALSE(res, false);
+
+		return SendObjectData(sock, object.objectData);
+	}
+
+	bool WriteObjects(Socket& sock, const std::vector<ObjectDescriptor<char>>& objects)
+	{
+		bool res = false;
+		uint64_t size = objects.size();
+		res = sock.SendData(&size);
+		RET_ON_FALSE(res, false);
+
+		for(auto& object : objects)
+		{
+			res = WriteObject(sock, object);
+			RET_ON_FALSE(res, false);
+		}
+		return false;
+	}
+
+	EStatus ReadSettings(FileSource<char>& fileSource,
+			ParserConfiguration<FileSource<char>, char>& config,
+			std::vector<ObjectDescriptor<char>>& objects)
+	{
+		ObjectParser<FileSource<char>, char> parser;
+		for(;;)
+		{
+			ObjectDescriptor<char> objDesc;
+			EStatus status = parser.Parse(fileSource, config, objDesc);
+			RET_ON_TRUE(status == EStatus::FAIL, status);
+			if(status == EStatus::DATA_END)
+			{
+				break;
+			}
+			if(config.IsTypeDecl(objDesc.type))
+			{
+				config.AddType(objDesc);
+				continue;
+			}
+			objects.push_back(objDesc);
+		}
+		return EStatus::SUCCESS;
+	}
+
+	EConnectionStatus SendFilteringSettings(Socket& sock)
+	{
+		std::string settingsFileName("settings.txt");
+		FileSource<char> fileSource(settingsFileName);
+		auto config = GetDefaultParserConfig<FileSource<char>>();
+		std::vector<ObjectDescriptor<char>> objects;
+		EStatus status = ReadSettings(fileSource, config, objects);
+		switch(status)
+		{
+		case EStatus::SUCCESS:
 			break;
+		case EStatus::DATA_END:
+		case EStatus::FAIL:
+		default:
+			return EConnectionStatus::FAIL;
 		}
-		if(config.IsTypeDecl(objDesc.type))
-		{
-			config.AddType(objDesc);
-			continue;
-		}
-		objects.push_back(objDesc);
+
+		bool res = WriteObjects(sock, objects);
+
+		return res ? EConnectionStatus::SUCCESS : EConnectionStatus::FAIL;
 	}
-	return EStatus::SUCCESS;
-}
 
-EStatus WriteObject(Socket& sock, ObjectDescriptor<char>& object)
-{
-	object.name;
-	object.type;
-	object.arrayDepth;
-	object.objectData;
-	return EStatus::FAIL;
-}
-
-EStatus WriteObjects(Socket& sock, std::vector<ObjectDescriptor<char>>& objects)
-{
-	EStatus status = EStatus::FAIL;
-	for(auto& object : objects)
+	EConnectionStatus
+	OnSetup::SendRequest(Socket& sock)
 	{
-		status = WriteObject(sock, object);
-		RET_ON_TRUE(status == EStatus::FAIL, status);
-	}
-	return EStatus::FAIL;
-}
+	  EProcessImage command = EProcessImage::SETUP_CAMERA;
 
-EConnectionStatus SendFilteringSettings(Socket& sock)
-{
-	std::string settingsFileName("settings.txt");
-	FileSource<char> fileSource(settingsFileName);
-	ParserConfiguration<FileSource<char>, char> config = GetDefaultParserConfig<FileSource<char>>();
-	std::vector<ObjectDescriptor<char>> objects;
-	EStatus status = ReadSettings(fileSource, config, objects);
-	switch(status)
+	  bool res = sock.SendData(&command);
+	  if(!res)
+	  {
+		  std::cout << "Failed to send command!" << std::endl;
+		  return EConnectionStatus::FAIL;
+	  }
+
+	  return SendFilteringSettings(sock);
+	}
+
+	EConnectionStatus
+	OnSetup::GetResponse(Socket& sock)
 	{
-	case EStatus::SUCCESS:
-		break;
-	case EStatus::DATA_END:
-	case EStatus::FAIL:
-	default:
-		return EConnectionStatus::FAIL;
+	  EConnectionStatus status = EConnectionStatus::FAIL;
+	  bool res = sock.ReadData(&status);
+	  if(!res)
+	  {
+		  std::cout << "Failed to read status!" << std::endl;
+		  return EConnectionStatus::FAIL;
+	  }
+	  if(status == EConnectionStatus::FAIL)
+	  {
+		  std::cout << "Failed to setup camera!" << std::endl;
+		  return status;
+	  }
+
+	  std::cout << "Successfully setup camera!" << std::endl;
+	  return status;
 	}
-
-	//WriteObjects(sock, objects);
-
-	return EConnectionStatus::SUCCESS;
-}
-
-EConnectionStatus
-OnSetup::SendRequest(Socket& sock)
-{
-  EProcessImage command = EProcessImage::SETUP_CAMERA;
-
-  auto res = sock.SendData(&command);
-  if(!res.second)
-  {
-      std::cout << "Failed to send command!" << std::endl;
-      return EConnectionStatus::FAIL;
-  }
-
-  return SendFilteringSettings(sock);
-}
-
-EConnectionStatus
-OnSetup::GetResponse(Socket& sock)
-{
-  EConnectionStatus status = EConnectionStatus::FAIL;
-  sock.ReadData(&status);
-  if(status == EConnectionStatus::FAIL)
-  {
-      std::cout << "Failed to setup camera!" << std::endl;
-      return status;
-  }
-
-  std::cout << "Successfully setup camera!" << std::endl;
-  return status;
 }
 

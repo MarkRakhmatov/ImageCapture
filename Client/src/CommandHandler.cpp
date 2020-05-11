@@ -8,24 +8,29 @@
 #include <sys/socket.h>
 #include <iostream>
 
-CommandHandler::CommandHandler()
+namespace ClientSide
 {
-  mCommandToHandler[static_cast<size_t>(ECommand::PROCESS_IMAGE)]
-                    .reset(new OnProcessImage);
-  mCommandToHandler[static_cast<size_t>(ECommand::EXIT)]
-                    .reset(new OnExit);
-  mCommandToHandler[static_cast<size_t>(ECommand::SERVER_SHUTDOWN)]
-                    .reset(new OnServerShutdown);
-}
+	using namespace Communication;
 
-EConnectionStatus
-CommandHandler::Handle(Socket& sock, ECommand command)
-{
-  if(command >= ECommand::SIZE)
-  {
-      std::cout << "Invalid command!" << std::endl;
-      return EConnectionStatus::FAIL;
-  }
+	CommandHandler::CommandHandler()
+	{
+	  mCommandToHandler[static_cast<size_t>(ECommand::PROCESS_IMAGE)]
+						.reset(new OnProcessImage);
+	  mCommandToHandler[static_cast<size_t>(ECommand::EXIT)]
+						.reset(new OnExit);
+	  mCommandToHandler[static_cast<size_t>(ECommand::SERVER_SHUTDOWN)]
+						.reset(new OnServerShutdown);
+	}
 
-  return mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
+	EConnectionStatus
+	CommandHandler::Handle(Socket& sock, ECommand command)
+	{
+	  if(command >= ECommand::SIZE)
+	  {
+		  std::cout << "Invalid command!" << std::endl;
+		  return EConnectionStatus::FAIL;
+	  }
+
+	  return mCommandToHandler[static_cast<size_t>(command)]->Handle(sock);
+	}
 }

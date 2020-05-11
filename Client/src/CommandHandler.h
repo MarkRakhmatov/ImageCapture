@@ -10,14 +10,17 @@
 #include <chrono>
 #include <unordered_map>
 
-class CommandHandler
+namespace ClientSide
 {
-public:
-  CommandHandler();
-  EConnectionStatus Handle(Socket& sock, ECommand command);
-private:
-  ECommand GetCommand();
-private:
-  std::array<std::unique_ptr<IOnCommand>,
-              static_cast<size_t>(ECommand::SIZE)> mCommandToHandler{};
-};
+	class CommandHandler
+	{
+	public:
+	  CommandHandler();
+	  Communication::EConnectionStatus Handle(Communication::Socket& sock, Communication::ECommand command);
+	private:
+	  Communication::ECommand GetCommand();
+	private:
+	  std::array<std::unique_ptr<IOnCommand>,
+				  static_cast<size_t>(Communication::ECommand::SIZE)> mCommandToHandler{};
+	};
+}

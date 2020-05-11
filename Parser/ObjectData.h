@@ -10,10 +10,10 @@ namespace Parser
 		template<typename T>
 		EStatus AppendData(T newData)
 		{
-			size_t origSize = data.size();
-			data.resize( origSize + sizeof(T));
+			size_t origSize = mData.size();
+			mData.resize( origSize + sizeof(T));
 
-			if(!std::memcpy(data.data() + origSize, &newData, sizeof(T)))
+			if(!std::memcpy(mData.data() + origSize, &newData, sizeof(T)))
 			{
 				return EStatus::FAIL;
 			}
@@ -23,23 +23,38 @@ namespace Parser
 		template<typename T>
 		T* GetData(size_t offset = 0)
 		{
-			if(offset*sizeof(T) > data.size()-1)
+			if(offset*sizeof(T) > mData.size()-1)
 			{
 				return nullptr;
 			}
-			return reinterpret_cast<T*>(data.data() + offset*sizeof(T));
+			return reinterpret_cast<T*>(mData.data() + offset*sizeof(T));
 		}
+		const std::vector<Byte>& GetRawData() const
+		{
+			return mData;
+		}
+
+		std::vector<Byte>& GetRawData()
+		{
+			return mData;
+		}
+
 		std::vector<ObjectData>& GetSubData()
 		{
-			return subData;
+			return mSubData;
+		}
+
+		const std::vector<ObjectData>& GetSubData() const
+		{
+			return mSubData;
 		}
 
 		ObjectData* At(uint32_t index)
 		{
-			return &subData[index];
+			return &mSubData[index];
 		}
 	private:
-		std::vector<Byte> data;
-		std::vector<ObjectData> subData;
+		std::vector<Byte> mData;
+		std::vector<ObjectData> mSubData;
 	};
 }

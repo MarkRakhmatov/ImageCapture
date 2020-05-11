@@ -1,11 +1,14 @@
 #pragma once
 #include <stdint.h>
 
-enum class EConnectionStatus : uint32_t
+namespace Communication
 {
-  FAIL,
-  SUCCESS,
-  SHUTDOWN,
-  DISCONNECT,
+	enum class EConnectionStatus : uint32_t
+	{
+	  FAIL,
+	  SUCCESS,
+	  SHUTDOWN,
+	  DISCONNECT,
 
-};
+	};
+}

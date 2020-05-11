@@ -1,8 +1,11 @@
 #pragma once
 #include "IOnCommandSrv.h"
 
-class OnSetupSrv : public IOnCommandSrv
+namespace ServerSide
 {
-public:
-  EConnectionStatus Handle(Socket& sock);
-};
+	class OnSetupSrv : public IOnCommandSrv
+	{
+	public:
+		Communication::EConnectionStatus Handle(Communication::Socket& sock);
+	};
+}

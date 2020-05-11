@@ -1,26 +1,29 @@
 #pragma once
 #include "Socket.h"
 #include "ImageProcessing/ImageProcessor.h"
-#include "ObjectHandler.h"
+#include "ObjectDescriptor.h"
 
 #include <memory>
 #include <vector>
 
-using Settings = std::vector<Parser::ObjectDescriptor<char>>;
-
-class SettingsHandler
+namespace ServerSide
 {
-public:
-	static SettingsHandler& Get()
-	{
-		static SettingsHandler handler{};
-		return handler;
-	}
-	Settings& GetSettings();
-private:
-	SettingsHandler() = default;
-private:
-	Settings mSettings;
-};
+	using Settings = std::vector<Parser::ObjectDescriptor<char>>;
 
-bool GetSettings(Socket& sock);
+	class SettingsHandler
+	{
+	public:
+		static SettingsHandler& Get()
+		{
+			static SettingsHandler handler{};
+			return handler;
+		}
+		Settings& GetSettings();
+	private:
+		SettingsHandler() = default;
+	private:
+		Settings mSettings;
+	};
+
+	bool GetSettings(Communication::Socket& sock);
+}

@@ -2,9 +2,13 @@
 #include "DescriptorHolder.h"
 #include "Socket.h"
 #include "Response.h"
-class IOnCommandSrv
+
+namespace ServerSide
 {
-public:
-  virtual ~IOnCommandSrv(){};
-  virtual EConnectionStatus Handle(Socket& sock) = 0;
-};
+	class IOnCommandSrv
+	{
+	public:
+	  virtual ~IOnCommandSrv(){};
+	  virtual Communication::EConnectionStatus Handle(Communication::Socket& sock) = 0;
+	};
+}

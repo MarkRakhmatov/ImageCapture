@@ -5,14 +5,17 @@
 #include "ServerCommandHandler.h"
 #include "Socket.h"
 
-class Server
+namespace ServerSide
 {
-public:
-  Server();
-  EConnectionStatus Listen();
-private:
-  EConnectionStatus HandleCommand();
-  DescriptorHolder mListener;
-  sockaddr_in mAddr{};
-  ServerCommandHandler mCommandHandler;
-};
+	class Server
+	{
+	public:
+	  Server();
+	  Communication::EConnectionStatus Listen();
+	private:
+	  Communication::EConnectionStatus HandleCommand();
+	  DescriptorHolder mListener;
+	  sockaddr_in mAddr{};
+	  ServerCommandHandler mCommandHandler;
+	};
+}
