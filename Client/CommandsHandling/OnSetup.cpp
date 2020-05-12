@@ -66,7 +66,7 @@ namespace ClientSide
 			res = WriteObject(sock, object);
 			RET_ON_FALSE(res, false);
 		}
-		return false;
+		return true;
 	}
 
 	EStatus ReadSettings(FileSource<char>& fileSource,
@@ -142,11 +142,11 @@ namespace ClientSide
 	  }
 	  if(status == EConnectionStatus::FAIL)
 	  {
-		  std::cout << "Failed to setup camera!" << std::endl;
+		  std::cout << "Failed to update settings!" << std::endl;
 		  return status;
 	  }
 
-	  std::cout << "Successfully setup camera!" << std::endl;
+	  std::cout << "Successfully updated settings!" << std::endl;
 	  return status;
 	}
 }

@@ -16,6 +16,7 @@ namespace ServerSide
 		auto& subData = objData.GetSubData();
 		uint64_t size{0};
 		res = sock.ReadData(&size);
+		subData.resize(size);
 		RET_ON_FALSE(res, false);
 		for(uint64_t i = 0 ; i < size; ++i)
 		{
@@ -24,6 +25,7 @@ namespace ServerSide
 		}
 		return true;
 	}
+
 	bool ReadObject(Socket &sock, Parser::ObjectDescriptor<char>& object)
 	{
 		bool res = ReadString(sock, object.name);
@@ -41,11 +43,13 @@ namespace ServerSide
 		uint64_t objCount{0};
 		bool res = sock.ReadData(&objCount);
 		RET_ON_FALSE(res, false);
+		objects.resize(objCount);
 		for(uint64_t i = 0; i < objCount; ++i)
 		{
 			res = ReadObject(sock, objects[0]);
 			RET_ON_FALSE(res, false);
 		}
+
 		return true;
 	}
 
@@ -53,9 +57,12 @@ namespace ServerSide
 	{
 		std::vector<Parser::ObjectDescriptor<char>> objects;
 		bool res = ReadObjects(sock, objects);
-		RET_ON_FALSE(res, EConnectionStatus::FAIL);
 		auto& settings = SettingsHandler::Get().GetSettings();
 		settings = std::move(objects);
-		return EConnectionStatus::SUCCESS;
+		EConnectionStatus status = res ? EConnectionStatus::SUCCESS : EConnectionStatus::FAIL;
+
+		res = sock.SendData(&status);
+		RET_ON_FALSE(res, EConnectionStatus::FAIL);
+		return status;
 	}
 }

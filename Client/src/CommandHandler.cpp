@@ -25,7 +25,7 @@ namespace ClientSide
 	EConnectionStatus
 	CommandHandler::Handle(Socket& sock, ECommand command)
 	{
-	  if(command >= ECommand::SIZE)
+	  if(command == ECommand::SIZE)
 	  {
 		  std::cout << "Invalid command!" << std::endl;
 		  return EConnectionStatus::FAIL;

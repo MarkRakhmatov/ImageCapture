@@ -14,9 +14,8 @@ namespace Communication
 
 	enum class EProcessImage : uint32_t
 	{
-	  EMPTY_COMMAND,
 	  SETUP_CAMERA,
-	  PROCESS_IMAGE,
+	  CAPTURE,
 
 	  SIZE
 	};

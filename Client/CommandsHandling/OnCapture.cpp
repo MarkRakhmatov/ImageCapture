@@ -19,7 +19,7 @@ namespace ClientSide
 	EConnectionStatus
 	OnCapture::SendRequest(Socket& sock)
 	{
-	  EProcessImage command = EProcessImage::PROCESS_IMAGE;
+	  EProcessImage command = EProcessImage::CAPTURE;
 
 	  bool res = sock.SendData(&command);
 	  if(!res)

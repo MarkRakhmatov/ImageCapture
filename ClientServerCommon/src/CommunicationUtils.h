@@ -1,6 +1,7 @@
 #pragma once
 #include "Socket.h"
 #include "CodeGeneration.h"
+#include <string>
 
 namespace Communication
 {
@@ -26,7 +27,8 @@ namespace Communication
 		uint64_t size = 0;
 		res = socket.ReadData(&size);
 		RET_ON_FALSE(res, false);
-		str.resize(size);
+
+		str.resize(static_cast<size_t>(size), '\0');
 		char ch;
 		for(uint64_t i = 0; i < size; ++i)
 		{
@@ -63,7 +65,7 @@ namespace Communication
 		uint64_t size = 0;
 		res = socket.ReadData(&size);
 		RET_ON_FALSE(res, false);
-		container.resize(size);
+		container.resize(static_cast<size_t>(size));
 		char ch;
 		for(uint64_t i = 0; i < size; ++i)
 		{

@@ -2,8 +2,8 @@
 #include "ImageProcessing/JpegHelper.h"
 #include "ImageProcessing/ImageProcessor.h"
 #include "SettingsHandler.h"
-#include "SwapChain.h"
-#include "Calculations.h"
+#include "OnCaptureSrv.h"
+#include "OnSetupSrv.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -19,122 +19,31 @@ namespace ServerSide
 	EConnectionStatus
 	OnProcessImageSrv::Handle(Socket& sock)
 	{
-	  do
+	  EProcessImage comm = ReadCommand(sock);
+	  if(comm == EProcessImage::SIZE)
 	  {
-		EProcessImage comm = ReadCommand(sock);
-		switch(comm)
-		{
-		case EProcessImage::SETUP_CAMERA:
-		{
-		  return SetupCamera(sock);
-		}
-		case EProcessImage::PROCESS_IMAGE:
-		{
-		  return ProcessImage(sock);
-		}
-		default:
-		{
 		  EConnectionStatus response = EConnectionStatus::FAIL;
 		  std::cout<<"Unsupported image processing command!"<<std::endl;
 		  sock.SendData(&response);
-		  break;
-		}
-		};
+		  return response;
 	  }
-	  while(false);
-
-	  std::cout<<"Failed to send response!"<<std::endl;
-	  return EConnectionStatus::FAIL;
+	  return mProcessImageCommands[static_cast<size_t>(comm)]->Handle(sock);
 	}
 
-	EConnectionStatus
-	OnProcessImageSrv::SetupCamera(Socket& sock)
+	OnProcessImageSrv::OnProcessImageSrv()
 	{
-	  mDevice.HandleParameters();
-	  auto response = EConnectionStatus::SUCCESS;
-	  bool res = sock.SendData(&response);
-	  if(!res)
-	  {
-		  return EConnectionStatus::FAIL;
-	  }
-	  return EConnectionStatus::SUCCESS;
-	}
-
-	EConnectionStatus
-	OnProcessImageSrv::ProcessImage(Socket& sock)
-	{
-	  do
-	  {
-		std::string fileName("Images/img_");
-		auto decomprBuffer = GetImageBufferFromDevice(mDevice);
-		EConnectionStatus response = EConnectionStatus::FAIL;
-		if(!decomprBuffer.GetWidth() || !decomprBuffer.GetHeight())
-		{
-			std::cout<<"Failed to get buffer!"<<std::endl;
-			sock.SendData(&response);
-			break;
-		}
-		auto& settings = SettingsHandler::Get().GetSettings();
-		settings.clear();
-		GetSettings(sock);
-
-		auto width = decomprBuffer.GetWidth();
-		auto height = decomprBuffer.GetHeight();
-		ImageBuffer<unsigned char> resultBuffer(width, height, decomprBuffer.GetPixelType());
-		SwapChain<ImageBuffer<unsigned char>> chain(&decomprBuffer, &resultBuffer);
-		for(size_t i = 0; i < settings.size(); ++i)
-		{
-			/*ConvHandler<unsigned char> convHandler
-			(
-					settings[i]
-			);
-			auto& originalBuff = *chain.GetActive();
-			chain.Swap();
-			auto& processedBuff = *chain.GetActive();
-			ImageProcessor::Convolution(
-					originalBuff,
-					processedBuff,
-					convHandler);*/
-		}
-
-		auto compressedBuffer = JpegHelper::Compress(*chain.GetActive());
-		int32_t x{};
-		int32_t y{};
-		ECalculationsStatus status = GetAngles(*chain.GetActive(), x, y);
-		if(status == ECalculationsStatus::FAIL)
-		{
-			break;
-		}
-		response = EConnectionStatus::SUCCESS;
-		bool res = sock.SendData(&response);
-		if(!res)
-		{
-			break;
-		}
-		res = sock.SendData(&x, &y);
-		if(!res)
-		{
-			break;
-		}
-
-		JpegHelper::WriteBufferToFile(compressedBuffer, fileName);
-
-		return EConnectionStatus::SUCCESS;
-	  }
-	  while(false);
-
-	  std::cout<<"Failed to send response!"<<std::endl;
-	  return EConnectionStatus::FAIL;
+		mProcessImageCommands[static_cast<size_t>(EProcessImage::CAPTURE)] = std::unique_ptr<IOnCommandSrv>(new OnCaptureSrv(mDevice));
+		mProcessImageCommands[static_cast<size_t>(EProcessImage::SETUP_CAMERA)] = std::unique_ptr<IOnCommandSrv>(new OnSetupSrv);
 	}
 
 	EProcessImage
 	OnProcessImageSrv::ReadCommand(Socket& sock)
 	{
-	  EProcessImage command = EProcessImage::EMPTY_COMMAND;
+	  EProcessImage command = EProcessImage::SIZE;
 	  bool res = sock.ReadData(&command);
-	  if(!res)
+	  if(!res || command > EProcessImage::SIZE)
 	  {
-		  return EProcessImage::EMPTY_COMMAND;
+		  return EProcessImage::SIZE;
 	  }
 	  return command;
 	}

@@ -30,7 +30,7 @@ namespace Parser
 		{
 			status = src.GetChar(ch);
 			RET_ON_FALSE(status == EStatus::SUCCESS, status);
-			RET_ON_FALSE(config.IsSpecCharacter(ch), EStatus::FAIL);
+			RET_ON_FALSE(config.GetSpecCharacter(ch), EStatus::FAIL);
 		}
 		return EStatus::SUCCESS;
 	}

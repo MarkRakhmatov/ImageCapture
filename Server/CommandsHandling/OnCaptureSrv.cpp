@@ -1,0 +1,76 @@
+#include "OnCaptureSrv.h"
+#include "SwapChain.h"
+#include "Calculations.h"
+#include "SettingsHandler.h"
+
+namespace ServerSide
+{
+	using namespace Communication;
+
+	OnCaptureSrv::OnCaptureSrv(VideoDevice &device)
+	: mDevice(device)
+	{
+	}
+
+	EConnectionStatus ServerSide::OnCaptureSrv::Handle(Socket& sock)
+	{
+		do
+			  {
+				std::string fileName("Images/img_");
+				auto decomprBuffer = GetImageBufferFromDevice(mDevice);
+				EConnectionStatus response = EConnectionStatus::FAIL;
+				if(!decomprBuffer.GetWidth() || !decomprBuffer.GetHeight())
+				{
+					std::cout<<"Failed to get buffer!"<<std::endl;
+					sock.SendData(&response);
+					break;
+				}
+				auto width = decomprBuffer.GetWidth();
+				auto height = decomprBuffer.GetHeight();
+				ImageBuffer<unsigned char> resultBuffer(width, height, decomprBuffer.GetPixelType());
+				SwapChain<ImageBuffer<unsigned char>> chain(&decomprBuffer, &resultBuffer);
+				/*for(size_t i = 0; i < settings.size(); ++i)
+				{
+					ConvHandler<unsigned char> convHandler
+					(
+							settings[i]
+					);
+					auto& originalBuff = *chain.GetActive();
+					chain.Swap();
+					auto& processedBuff = *chain.GetActive();
+					ImageProcessor::Convolution(
+							originalBuff,
+							processedBuff,
+							convHandler);
+				}*/
+
+				auto compressedBuffer = JpegHelper::Compress(*chain.GetActive());
+				int32_t x{};
+				int32_t y{};
+				ECalculationsStatus status = GetAngles(*chain.GetActive(), x, y);
+				if(status == ECalculationsStatus::FAIL)
+				{
+					break;
+				}
+				response = EConnectionStatus::SUCCESS;
+				bool res = sock.SendData(&response);
+				if(!res)
+				{
+					break;
+				}
+				res = sock.SendData(&x, &y);
+				if(!res)
+				{
+					break;
+				}
+
+				JpegHelper::WriteBufferToFile(compressedBuffer, fileName);
+
+				return EConnectionStatus::SUCCESS;
+			  }
+			  while(false);
+
+			  std::cout<<"Failed to send response!"<<std::endl;
+			  return EConnectionStatus::FAIL;
+	}
+}

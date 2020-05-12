@@ -19,7 +19,7 @@ namespace Parser
 		ParserConfiguration(const std::basic_string<Char>& typeName,
 				const std::vector<TypeInfo<Source, Char>>& types,
 				const std::vector<Char>& ignoreChars,
-				const std::vector<Char>& specCharacters,
+				const std::vector<std::pair<Char, Char>>& specCharacters,
 				const std::pair<Char, Char>& objDataBrackets,
 				const std::pair<Char, Char>& stringBrackets,
 				const std::pair<Char, Char>& charBrackets,
@@ -87,10 +87,17 @@ namespace Parser
 		{
 			return mEscapeSequenceStart == ch;
 		}
-		bool IsSpecCharacter(Char ch) const
+		bool GetSpecCharacter(Char& ch) const
 		{
-			auto iter = std::find(mSpecCharacters.begin(), mSpecCharacters.end(), ch);
-			return iter != mSpecCharacters.end();
+			for(auto chars : mSpecCharacters)
+			{
+				if(chars.first == ch)
+				{
+					ch = chars.second;
+					return true;
+				}
+			}
+			return false;
 		}
 
 		bool IsBlockStart(Char ch) const
@@ -159,7 +166,7 @@ namespace Parser
 		std::set<TypeInfo<Source, Char>> mTypes;
 		uint32_t mCustomTypesCount{};
 		std::vector<Char> mIgnoreChars;
-		std::vector<Char> mSpecCharacters;
+		std::vector<std::pair<Char, Char>> mSpecCharacters;
 		std::pair<Char, Char> mObjDataBrackets;
 		std::pair<Char, Char> mStringBrackets;
 		std::pair<Char, Char> mCharBrackets;
@@ -197,7 +204,7 @@ namespace Parser
 				"Type",
 				{typesInfo},
 				{' ', '\n', '\t'},
-				{'\\', '\n', '\t','\'','\"'},
+				{{'\\','\\'}, {'n','\n'}, {'t','\t'}, {'0', '\0'},{'\'','\''},{'\"','\"'}},
 				{'{','}'},
 				{'\"','\"'},
 				{'\'', '\''},
