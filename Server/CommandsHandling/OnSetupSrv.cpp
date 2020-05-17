@@ -16,8 +16,8 @@ namespace ServerSide
 		auto& subData = objData.GetSubData();
 		uint64_t size{0};
 		res = sock.ReadData(&size);
-		subData.resize(size);
 		RET_ON_FALSE(res, false);
+		subData.resize(size);
 		for(uint64_t i = 0 ; i < size; ++i)
 		{
 			res = ReadObjectData(sock, subData[i]);
@@ -46,23 +46,36 @@ namespace ServerSide
 		objects.resize(objCount);
 		for(uint64_t i = 0; i < objCount; ++i)
 		{
-			res = ReadObject(sock, objects[0]);
+			res = ReadObject(sock, objects[i]);
 			RET_ON_FALSE(res, false);
 		}
-
 		return true;
 	}
 
 	EConnectionStatus OnSetupSrv::Handle(Socket &sock)
 	{
 		std::vector<Parser::ObjectDescriptor<char>> objects;
-		bool res = ReadObjects(sock, objects);
-		auto& settings = SettingsHandler::Get().GetSettings();
-		settings = std::move(objects);
-		EConnectionStatus status = res ? EConnectionStatus::SUCCESS : EConnectionStatus::FAIL;
+		EConnectionStatus status = EConnectionStatus::FAIL;
+		bool res{false};
+		do
+		{
+			res = ReadObjects(sock, objects);
+			if(!res)
+			{
+				break;
+			}
+			auto& settings = SettingsHandler::Get().GetSettings();
+			settings = std::move(objects);
+			res = SettingsHandler::Get().ReadKernels();
+			if(!res)
+			{
+				break;
+			}
+			status = EConnectionStatus::SUCCESS;
+		} while(false);
 
 		res = sock.SendData(&status);
-		RET_ON_FALSE(res, EConnectionStatus::FAIL);
+		RET_ON_FALSE(res, status);
 		return status;
 	}
 }

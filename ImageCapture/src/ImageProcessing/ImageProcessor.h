@@ -1,10 +1,10 @@
 #pragma once
 #include "ImageBuffer.h"
+#include "Kernel.h"
+#include <stdint.h>
+#include <vector>
 #include <limits>
 
-
-using KernelType = float;
-using ConvKernel = std::vector<std::vector<KernelType>>;
 
 template <typename T, typename T1>
 T Normalize(T1 num)
@@ -35,37 +35,46 @@ T InBounds(T val, T lowwerBound, T upperBound)
   return val;
 }
 
+template<typename T>
+bool IsInBounds(T val, T lowwerBound, T upperBound)
+{
+  return (val<=lowwerBound || val>=upperBound) ? false :true;
+}
+
 template <typename T>
 struct ConvHandler
 {
-  ConvHandler(ConvKernel kernels)
-  : mKernel(std::move(kernels))
+  ConvHandler(Kernel& kernel)
+  : mKernel(kernel)
+  , mKernelUnitsSize(mKernel.Get().size())
+  , mKernelHalfSize((mKernel.Size() - 1)/2)
   {}
 
   void operator()(ImageBuffer<T>& buffer,
-      ImageBuffer<T>& resultBuffer, size_t i, size_t j)
+      ImageBuffer<T>& resultBuffer, uint32_t i, uint32_t j)
   {
-    int32_t resultPix{};
-    const auto kernelSize = mKernel.size();
-
-    int32_t iStart = InBounds<int32_t>(i - (kernelSize - 1)/2, 0, buffer.GetHeight());
-    int32_t jStart =  InBounds<int32_t>(j - (kernelSize - 1)/2, 0, buffer.GetWidth());
-    size_t heightBound = InBounds<size_t>(kernelSize, 0, buffer.GetHeight() - iStart);
-    size_t widthBound = InBounds<size_t>(kernelSize, 0, buffer.GetWidth() - jStart);
-
-    for(size_t l = 0; l < heightBound; ++l)
+    int32_t kernelMappingOffsetI = i - mKernelHalfSize;
+    int32_t kernelMappingOffsetJ = j - mKernelHalfSize;
+    if(!IsInBounds<int32_t>(kernelMappingOffsetI, 0, buffer.GetHeight())
+	|| !IsInBounds<int32_t>(kernelMappingOffsetJ, 0, buffer.GetWidth()))
     {
-	for(size_t m = 0; m < widthBound; ++m)
-	{
-	    resultPix +=
-		*buffer.GetElement(iStart+l, jStart+m)*mKernel[l][m];
-	}
+	return;
+    }
+    int32_t resultPix{};
+    const std::vector<KernelUnit>& kernelUnits= mKernel.Get();
+    for(uint32_t counter = 0; counter < mKernelUnitsSize; ++counter)
+    {
+	resultPix +=
+		*buffer.GetElement(kernelUnits[counter].i + kernelMappingOffsetI,
+				   kernelUnits[counter].j + kernelMappingOffsetJ) * kernelUnits[counter].coeff;
     }
 
     resultBuffer.GetElement(i,j)[0] = Normalize<T>(resultPix);
   }
 private:
-  ConvKernel mKernel;
+  Kernel mKernel;
+  uint32_t mKernelUnitsSize{};
+  uint32_t mKernelHalfSize{};
 };
 
 class ImageProcessor

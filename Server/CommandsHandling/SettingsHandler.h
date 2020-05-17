@@ -8,7 +8,7 @@
 
 namespace ServerSide
 {
-	using Settings = std::vector<Parser::ObjectDescriptor<char>>;
+	using Objects = std::vector<Parser::ObjectDescriptor<char>>;
 
 	class SettingsHandler
 	{
@@ -18,11 +18,19 @@ namespace ServerSide
 			static SettingsHandler handler{};
 			return handler;
 		}
-		Settings& GetSettings();
+		Parser::ObjectDescriptor<char>* GetObjectByName(const std::string& name);
+		bool ReadKernelUnits(const Parser::ObjectData& obj, Kernel& kernel);
+		bool ReadKernelSize(const Parser::ObjectData& obj, uint32_t& kernelSize);
+		bool ReadKernels();
+		std::vector<Kernel>& GetKernels();
+		Objects& GetSettings();
 	private:
 		SettingsHandler() = default;
 	private:
-		Settings mSettings;
+		Objects mSettingsObjects;
+		std::string imageSource;
+		std::string imageSourceName;
+		std::vector<Kernel> mKernels;
 	};
 
 	bool GetSettings(Communication::Socket& sock);

@@ -21,6 +21,6 @@ namespace Parser
 	template<typename Char>
 	bool operator < (const ObjectDescriptor<Char>& lhs, const ObjectDescriptor<Char>& rhs)
 	{
-		return lhs.objName < rhs.objName;
+		return lhs.name < rhs.name;
 	}
 }

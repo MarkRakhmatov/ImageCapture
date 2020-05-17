@@ -29,6 +29,16 @@ namespace Parser
 			}
 			return reinterpret_cast<T*>(mData.data() + offset*sizeof(T));
 		}
+
+		template<typename T>
+		const T* GetData(size_t offset = 0) const
+		{
+			if(offset*sizeof(T) > mData.size()-1)
+			{
+				return nullptr;
+			}
+			return reinterpret_cast<const T*>(mData.data() + offset*sizeof(T));
+		}
 		const std::vector<Byte>& GetRawData() const
 		{
 			return mData;

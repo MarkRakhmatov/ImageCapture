@@ -4,17 +4,17 @@
 namespace Parser
 {
 	template<typename T>
-	T AsInt(ObjectData& objData)
+	T AsInt(const ObjectData& objData)
 	{
 		return *objData.GetData<T>();
 	}
 
-	char AsChar(ObjectData& objData)
+	char AsChar(const ObjectData& objData)
 	{
 		return *objData.GetData<char>();
 	}
 
-	std::string AsString(ObjectData& objData)
+	std::string AsString(const ObjectData& objData)
 	{
 		return objData.GetData<char>();
 	}
