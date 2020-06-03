@@ -19,19 +19,21 @@ namespace ServerSide
 			return handler;
 		}
 		Parser::ObjectDescriptor<char>* GetObjectByName(const std::string& name);
+		Objects& GetSettings();
+		bool ReadSettings();
+		std::vector<Kernel>& GetKernels();
+		const std::string& GetImageSourceName();
+		const std::string& GetImageSourceType();
+	private:
+		SettingsHandler();
+		bool ReadImageSourceInfo();
 		bool ReadKernelUnits(const Parser::ObjectData& obj, Kernel& kernel);
 		bool ReadKernelSize(const Parser::ObjectData& obj, uint32_t& kernelSize);
 		bool ReadKernels();
-		std::vector<Kernel>& GetKernels();
-		Objects& GetSettings();
-	private:
-		SettingsHandler() = default;
 	private:
 		Objects mSettingsObjects;
-		std::string imageSource;
-		std::string imageSourceName;
+		std::string mImageSourceType;
+		std::string mImageSourceName;
 		std::vector<Kernel> mKernels;
 	};
-
-	bool GetSettings(Communication::Socket& sock);
 }

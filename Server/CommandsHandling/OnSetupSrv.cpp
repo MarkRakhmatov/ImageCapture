@@ -1,6 +1,7 @@
 #include "OnSetupSrv.h"
 #include "SettingsHandler.h"
 #include "CodeGeneration.h"
+#include "DeviceImageSource.h"
 #include "CommunicationUtils.h"
 
 namespace ServerSide
@@ -52,11 +53,17 @@ namespace ServerSide
 		return true;
 	}
 
+OnSetupSrv::OnSetupSrv(std::unique_ptr<IImageSource<unsigned char> >& imageSource)
+ : mImageSource(imageSource)
+{
+}
+
 	EConnectionStatus OnSetupSrv::Handle(Socket &sock)
 	{
 		std::vector<Parser::ObjectDescriptor<char>> objects;
 		EConnectionStatus status = EConnectionStatus::FAIL;
 		bool res{false};
+		auto& settingsHadler = SettingsHandler::Get();
 		do
 		{
 			res = ReadObjects(sock, objects);
@@ -64,9 +71,9 @@ namespace ServerSide
 			{
 				break;
 			}
-			auto& settings = SettingsHandler::Get().GetSettings();
+			auto& settings = settingsHadler.GetSettings();
 			settings = std::move(objects);
-			res = SettingsHandler::Get().ReadKernels();
+			res = settingsHadler.ReadSettings();
 			if(!res)
 			{
 				break;
@@ -75,7 +82,16 @@ namespace ServerSide
 		} while(false);
 
 		res = sock.SendData(&status);
-		RET_ON_FALSE(res, status);
+
+		// re-create image source
+		std::string imageSourceName = settingsHadler.GetImageSourceName();
+		std::string sourceType = settingsHadler.GetImageSourceType();
+
+		if(sourceType == "Device")
+		{
+			mImageSource.reset(new DeviceImageSource(imageSourceName, 1920, 1080));
+		}
+
 		return status;
 	}
 }

@@ -5,7 +5,7 @@
 							{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}},
 							{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}}}
 	string imageSrcType{"Device"}
-	string imageSrcName{"device0"}
+	string imageSrcName{"/dev/video0"}
 	string kernels[]
 	{
 		"9",

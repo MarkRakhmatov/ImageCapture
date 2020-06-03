@@ -1,14 +1,15 @@
 #include "OnCaptureSrv.h"
 #include "SwapChain.h"
 #include "Calculations.h"
+#include "JpegHelper.h"
 #include "SettingsHandler.h"
 
 namespace ServerSide
 {
 	using namespace Communication;
 
-	OnCaptureSrv::OnCaptureSrv(VideoDevice &device)
-	: mDevice(device)
+	OnCaptureSrv::OnCaptureSrv(std::unique_ptr<IImageSource<unsigned char>>& imageSource)
+	: mImageSource(imageSource)
 	{
 	}
 
@@ -17,7 +18,7 @@ namespace ServerSide
 		do
 		{
 			std::string fileName("Images/img_");
-			auto decomprBuffer = GetImageBufferFromDevice(mDevice);
+			auto decomprBuffer = mImageSource->GetImage();
 			EConnectionStatus response = EConnectionStatus::FAIL;
 			auto width = decomprBuffer.GetWidth();
 			auto height = decomprBuffer.GetHeight();
@@ -71,7 +72,7 @@ namespace ServerSide
 		}
 		while(false);
 
-			std::cout<<"Failed to send response!"<<std::endl;
-			return EConnectionStatus::FAIL;
+		std::cout<<"Failed to send response!"<<std::endl;
+		return EConnectionStatus::FAIL;
 	}
 }

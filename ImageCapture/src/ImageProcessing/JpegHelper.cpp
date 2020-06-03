@@ -40,7 +40,7 @@ void
 ConvertImgFormat (const ImageBuffer<unsigned char>& buffer, TJSAMP& samp,
 		  TJPF& pixFormat)
 {
-  const std::unordered_map<EPixelType, std::pair<TJPF, TJSAMP>, EnumClassHash>
+  const std::unordered_map<EPixelType, std::pair<TJPF, TJSAMP>, EnumClassHash<uint16_t>>
 	buffFormatToJpeg
 	{
 	  {EPixelType::GRAY_SCALE, {TJPF::TJPF_GRAY, TJSAMP::TJSAMP_GRAY}},

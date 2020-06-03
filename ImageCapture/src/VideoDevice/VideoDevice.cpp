@@ -19,19 +19,22 @@
 #include <sstream>
 #include <pthread.h>
 
-VideoDevice::VideoDevice(const std::string& deviceName)
+VideoDevice::VideoDevice(const std::string& deviceName, int width, int height)
 : mDeviceName(deviceName)
+, mHeight(height)
+, mWidth(width)
+
 {
-  OpenDevice(mDeviceName);
+  OpenDevice();
   SetImageFormat();
 }
 
-void VideoDevice::SetImageFormat(int width, int height)
+void VideoDevice::SetImageFormat()
 {
   v4l2_format imageFormat{0};
   imageFormat.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  imageFormat.fmt.pix.width = width;
-  imageFormat.fmt.pix.height = height;
+  imageFormat.fmt.pix.width = mWidth;
+  imageFormat.fmt.pix.height = mHeight;
 
   imageFormat.fmt.pix.pixelformat = V4L2_PIX_FMT_JPEG;
   imageFormat.fmt.pix.field = V4L2_FIELD_NONE;
@@ -53,10 +56,10 @@ VideoDevice::GetBuffer()
 }
 
 void
-VideoDevice::OpenDevice(const std::string& deviceName)
+VideoDevice::OpenDevice()
 {
   auto res = WaitForAsyncCall<decltype(CheckOpenFile), CheckOpenFile>
-			  (open, mTimeout, deviceName.c_str(), O_RDWR | O_NONBLOCK);
+			  (open, mTimeout, mDeviceName.c_str(), O_RDWR | O_NONBLOCK);
   if(!res.second)
   {
       perror("Failed to open device, OPEN");
@@ -192,7 +195,6 @@ VideoDevice::InitBuffer()
       perror("Could not end streaming, VIDIOC_STREAMOFF");
       std::cout << "Descriptor: " << mDescriptor.Get() <<std::endl;
       Reset();
-      return;
   }
 }
 
@@ -201,7 +203,17 @@ VideoDevice::Reset ()
 {
   mBuffer.Reset();
   mDescriptor.Reset();
-  OpenDevice(mDeviceName);
+  OpenDevice();
+  SetImageFormat();
+}
+
+void
+VideoDevice::Reset (const std::string &deviceName, int width, int height)
+{
+  mDeviceName = deviceName;
+  mHeight = height;
+  mWidth = width;
+  Reset();
 }
 
 ImageBuffer<unsigned char>
@@ -216,3 +228,4 @@ GetImageBufferFromDevice (VideoDevice& device)
   }
   return imgBuff;
 }
+

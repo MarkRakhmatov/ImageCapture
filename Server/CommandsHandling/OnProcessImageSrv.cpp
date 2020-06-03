@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <iostream>
+#include "DeviceImageSource.h"
 
 #include "OnProcessImageSrv.h"
 
@@ -31,9 +32,10 @@ namespace ServerSide
 	}
 
 	OnProcessImageSrv::OnProcessImageSrv()
+		: mImageSource(new DeviceImageSource("/dev/video0", 1920, 1080))
 	{
-		mProcessImageCommands[static_cast<size_t>(EProcessImage::CAPTURE)] = std::unique_ptr<IOnCommandSrv>(new OnCaptureSrv(mDevice));
-		mProcessImageCommands[static_cast<size_t>(EProcessImage::SETUP_CAMERA)] = std::unique_ptr<IOnCommandSrv>(new OnSetupSrv);
+		mProcessImageCommands[static_cast<size_t>(EProcessImage::CAPTURE)] = std::unique_ptr<IOnCommandSrv>(new OnCaptureSrv(mImageSource));
+		mProcessImageCommands[static_cast<size_t>(EProcessImage::SETUP_CAMERA)] = std::unique_ptr<IOnCommandSrv>(new OnSetupSrv(mImageSource));
 	}
 
 	EProcessImage

@@ -8,12 +8,6 @@ namespace ServerSide
 	using namespace Communication;
 	using namespace Parser;
 
-	bool GetSettings(Socket& sock)
-	{
-
-	  return false;
-	}
-
 	bool SettingsHandler::ReadKernelUnits(const Parser::ObjectData& obj, Kernel& kernel)
 	{
 		std::stringstream converter(AsString(obj));
@@ -47,6 +41,27 @@ namespace ServerSide
 		converter >> kernelSize;
 		RET_ON_FALSE(converter, false);
 		return true;
+	}
+
+	bool SettingsHandler::ReadSettings()
+	{
+		RET_ON_FALSE(ReadKernels(), false);
+		return ReadImageSourceInfo();
+
+	}
+
+	bool SettingsHandler::ReadImageSourceInfo()
+	{
+		std::string imgSourceTypeStr{"imageSrcType"};
+		Parser::ObjectDescriptor<char>* imgSourceType = GetObjectByName(imgSourceTypeStr);
+		RET_ON_FALSE(imgSourceType, false);
+		mImageSourceType = Parser::AsString(imgSourceType->objectData);
+		std::string imgSourceNameStr{"imageSrcName"};
+		Parser::ObjectDescriptor<char>* imgSourceName = GetObjectByName(imgSourceNameStr);
+		RET_ON_FALSE(imgSourceName, false);
+		mImageSourceName = Parser::AsString(imgSourceName->objectData);
+		return true;
+
 	}
 
 	bool SettingsHandler::ReadKernels()
@@ -93,9 +108,24 @@ namespace ServerSide
 		return nullptr;
 	}
 
+	const std::string& SettingsHandler::GetImageSourceName()
+	{
+		return mImageSourceName;
+	}
+
+	const std::string& SettingsHandler::GetImageSourceType()
+	{
+		return mImageSourceType;
+	}
 
 	Objects& SettingsHandler::GetSettings()
 	{
 		return mSettingsObjects;
 	}
+
+	SettingsHandler::SettingsHandler()
+	: mImageSourceType("Device")
+	, mImageSourceName("/dev/video0")
+	{}
+
 }

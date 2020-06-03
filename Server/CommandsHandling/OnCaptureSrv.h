@@ -1,16 +1,16 @@
 #pragma once
 #include "IOnCommandSrv.h"
-#include "VideoDevice/VideoDevice.h"
+#include "IImageSource.h"
 
 namespace ServerSide
 {
 	class OnCaptureSrv: public IOnCommandSrv
 	{
 	public:
-		explicit OnCaptureSrv(VideoDevice& device);
+		explicit OnCaptureSrv(std::unique_ptr<IImageSource<unsigned char>>& imageSource);
 		Communication::EConnectionStatus Handle(Communication::Socket& sock);
 	private:
-		VideoDevice& mDevice;
+		std::unique_ptr<IImageSource<unsigned char>>& mImageSource;
 	};
 
 }
