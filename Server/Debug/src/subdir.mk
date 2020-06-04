@@ -5,18 +5,21 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/DeviceImageSource.cpp \
+../src/DirImageSource.cpp \
 ../src/Server.cpp \
 ../src/ServerCommandHandler.cpp \
 ../src/main.cpp 
 
 OBJS += \
 ./src/DeviceImageSource.o \
+./src/DirImageSource.o \
 ./src/Server.o \
 ./src/ServerCommandHandler.o \
 ./src/main.o 
 
 CPP_DEPS += \
 ./src/DeviceImageSource.d \
+./src/DirImageSource.d \
 ./src/Server.d \
 ./src/ServerCommandHandler.d \
 ./src/main.d 

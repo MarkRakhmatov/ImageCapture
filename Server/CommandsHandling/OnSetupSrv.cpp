@@ -2,6 +2,7 @@
 #include "SettingsHandler.h"
 #include "CodeGeneration.h"
 #include "DeviceImageSource.h"
+#include "DirImageSource.h"
 #include "CommunicationUtils.h"
 
 namespace ServerSide
@@ -83,13 +84,16 @@ OnSetupSrv::OnSetupSrv(std::unique_ptr<IImageSource<unsigned char> >& imageSourc
 
 		res = sock.SendData(&status);
 
-		// re-create image source
 		std::string imageSourceName = settingsHadler.GetImageSourceName();
 		std::string sourceType = settingsHadler.GetImageSourceType();
 
 		if(sourceType == "Device")
 		{
 			mImageSource.reset(new DeviceImageSource(imageSourceName, 1920, 1080));
+		}
+		else if(sourceType == "Folder")
+		{
+			mImageSource.reset(new DirImageSource(imageSourceName));
 		}
 
 		return status;

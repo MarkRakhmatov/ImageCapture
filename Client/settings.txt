@@ -4,8 +4,8 @@
 	string testArr2[][][]{{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}},
 							{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}},
 							{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}}}
-	string imageSrcType{"Device"}
-	string imageSrcName{"/dev/video0"}
+	string imageSrcType{"Folder"}
+	string imageSrcName{"/home/debian/Earth"}
 	string kernels[]
 	{
 		"9",

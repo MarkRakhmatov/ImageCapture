@@ -47,7 +47,8 @@ struct ConvHandler
   ConvHandler(Kernel& kernel)
   : mKernel(kernel)
   , mKernelUnitsSize(mKernel.Get().size())
-  , mKernelHalfSize((mKernel.Size() - 1)/2)
+  , mKernelSize(mKernel.Size())
+  , mKernelHalfSize((mKernelSize - 1)/2)
   {}
 
   void operator()(ImageBuffer<T>& buffer,
@@ -55,8 +56,8 @@ struct ConvHandler
   {
     int32_t kernelMappingOffsetI = i - mKernelHalfSize;
     int32_t kernelMappingOffsetJ = j - mKernelHalfSize;
-    if(!IsInBounds<int32_t>(kernelMappingOffsetI, 0, buffer.GetHeight())
-	|| !IsInBounds<int32_t>(kernelMappingOffsetJ, 0, buffer.GetWidth()))
+    if(!IsInBounds<int32_t>(kernelMappingOffsetI, 0, buffer.GetHeight() - mKernelSize)
+	|| !IsInBounds<int32_t>(kernelMappingOffsetJ, 0, buffer.GetWidth() - mKernelSize))
     {
 	return;
     }
@@ -74,6 +75,7 @@ struct ConvHandler
 private:
   Kernel mKernel;
   uint32_t mKernelUnitsSize{};
+  uint32_t mKernelSize{};
   uint32_t mKernelHalfSize{};
 };
 
