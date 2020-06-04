@@ -87,6 +87,7 @@ OnSetupSrv::OnSetupSrv(std::unique_ptr<IImageSource<unsigned char> >& imageSourc
 		std::string imageSourceName = settingsHadler.GetImageSourceName();
 		std::string sourceType = settingsHadler.GetImageSourceType();
 
+		mImageSource.reset();
 		if(sourceType == "Device")
 		{
 			mImageSource.reset(new DeviceImageSource(imageSourceName, 1920, 1080));

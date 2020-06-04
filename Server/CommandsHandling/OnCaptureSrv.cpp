@@ -15,11 +15,12 @@ namespace ServerSide
 
 	EConnectionStatus ServerSide::OnCaptureSrv::Handle(Socket& sock)
 	{
+		EConnectionStatus response = EConnectionStatus::FAIL;
+		bool res = false;
 		do
 		{
 			std::string fileName("Images/img_");
 			auto decomprBuffer = mImageSource->GetImage();
-			EConnectionStatus response = EConnectionStatus::FAIL;
 			auto width = decomprBuffer.GetWidth();
 			auto height = decomprBuffer.GetHeight();
 			if(!width || !height)
@@ -55,15 +56,15 @@ namespace ServerSide
 				break;
 			}
 			response = EConnectionStatus::SUCCESS;
-			bool res = sock.SendData(&response);
+			res = sock.SendData(&response);
 			if(!res)
 			{
-				break;
+				return EConnectionStatus::FAIL;
 			}
 			res = sock.SendData(&x, &y);
 			if(!res)
 			{
-				break;
+				return EConnectionStatus::FAIL;
 			}
 
 			JpegHelper::WriteBufferToFile(compressedBuffer, fileName);
@@ -72,6 +73,7 @@ namespace ServerSide
 		}
 		while(false);
 
+		sock.SendData(&response);
 		std::cout<<"Failed to send response!"<<std::endl;
 		return EConnectionStatus::FAIL;
 	}
