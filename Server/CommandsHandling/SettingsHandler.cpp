@@ -45,6 +45,7 @@ namespace ServerSide
 
 	bool SettingsHandler::ReadSettings()
 	{
+		Reset();
 		RET_ON_FALSE(ReadKernels(), false);
 		{
 		const std::string imgSourceTypeStr{"imageSrcType"};
@@ -58,6 +59,23 @@ namespace ServerSide
 		Parser::ObjectDescriptor<char>* imgSourceName = GetObjectByName(imgSourceNameStr);
 		RET_ON_FALSE(imgSourceName, false);
 		mImageSourceName = Parser::AsString(imgSourceName->objectData);
+		}
+
+		{
+		const std::string RGBStr{"RGB"};
+		Parser::ObjectDescriptor<char>* RGB = GetObjectByName(RGBStr);
+		RET_ON_FALSE(RGB, false);
+		RET_ON_FALSE(RGB->type == EType::STRING, false);
+		RET_ON_FALSE(RGB->arrayDepth == 1, false);
+		auto& subData = RGB->objectData.GetSubData();
+		uint32_t size = static_cast<uint32_t>(subData.size());
+		RET_ON_FALSE(size == 3, false);
+		std::stringstream converter;
+		converter << Parser::AsString(subData[0]) << " "
+				 << Parser::AsString(subData[1]) << " "
+				 << Parser::AsString(subData[2]) << " ";
+		converter >> mR >> mG >> mB;
+
 		}
 
 		{
@@ -142,6 +160,7 @@ namespace ServerSide
 		auto& subData = object->objectData.GetSubData();
 		uint32_t size = static_cast<uint32_t>(subData.size());
 		RET_ON_FALSE(size || size%2 != 0, false);
+		kernels.clear();
 		kernels.resize(size/2);
 
 		uint32_t objectsCounter = 0;
@@ -158,6 +177,13 @@ namespace ServerSide
 			RET_ON_FALSE(res, false);
 		}
 		return true;
+	}
+
+	void SettingsHandler::GetRgb(float& r, float& g, float& b)
+	{
+		r = mR;
+		g = mG;
+		b = mB;
 	}
 
 	bool SettingsHandler::ReadKernels()
@@ -222,5 +248,20 @@ namespace ServerSide
 	, mDetectionThreshold(120)
 	, mBrightnessLowerBound(50)
 	{}
+
+	void SettingsHandler::Reset()
+	{
+		mImageSourceType.clear();
+		mImageSourceName.clear();
+		mPreanalysisWindowSize = 30;
+		mPointDetectionWindfowSize =15;
+		mDetectionThreshold = 120;
+		mBrightnessLowerBound = 50;
+
+		mCustomKernels.clear();
+		mSobelKernels.clear();
+		mPrewittKernels.clear();
+
+	}
 
 }

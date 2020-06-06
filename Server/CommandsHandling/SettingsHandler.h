@@ -26,6 +26,7 @@ namespace ServerSide
 		std::vector<Kernel>& GetPrewittKernels();
 		const std::string& GetImageSourceName();
 		const std::string& GetImageSourceType();
+		void GetRgb(float& r, float& g,float& b);
 		const std::string& GetPreprocessingAlgoName();
 		int32_t GetPreanalysisWindowSize();
 		int32_t GetPointDetectionWindfowSize();
@@ -37,10 +38,14 @@ namespace ServerSide
 		bool ReadKernelUnits(const Parser::ObjectData& obj, Kernel& kernel);
 		bool ReadKernelSize(const Parser::ObjectData& obj, uint32_t& kernelSize);
 		bool ReadKernels();
+		void Reset();
 	private:
 		Objects mSettingsObjects;
 		std::string mImageSourceType;
 		std::string mImageSourceName;
+		float mR{0.299f};
+		float mG{0.587f};
+		float mB{0.11f};
 		std::string mPreprocessingAlgoName;
 		int32_t mPreanalysisWindowSize;
 		int32_t mPointDetectionWindfowSize;

@@ -53,6 +53,7 @@ namespace ServerSide
 		for(Point point : points)
 		{
 			MarkPoint(buffer, point.x, point.y);
+			std::cout<< "Point x = "<< point.x << " y = " << point.y << std::endl;
 		}
 	}
 	bool SobelPreproc(SwapChain<ImageBuffer<unsigned char>>& chain)
@@ -112,7 +113,13 @@ namespace ServerSide
 	}
 	bool PreprocessImage(ImageBuffer<unsigned char>& originalImgBuffer, ImageBuffer<unsigned char>& resultBuffer)
 	{
-		auto decomprBuffer = RgbToGrayscale<unsigned char>(originalImgBuffer);
+		auto& settingsHandler = SettingsHandler::Get();
+
+		float r{};
+		float g{};
+		float b{};
+		settingsHandler.GetRgb(r, g, b);
+		auto decomprBuffer = RgbToGrayscale<unsigned char>(originalImgBuffer, r, g, b);
 		auto width = decomprBuffer.GetWidth();
 		auto height = decomprBuffer.GetHeight();
 		if(!width || !height)
@@ -122,7 +129,6 @@ namespace ServerSide
 		}
 		ImageBuffer<unsigned char> secondBuffer(width, height, decomprBuffer.GetPixelType());
 		SwapChain<ImageBuffer<unsigned char>> chain(&decomprBuffer, &secondBuffer);
-		auto& settingsHandler = SettingsHandler::Get();
 		std::string preprocName = settingsHandler.GetPreprocessingAlgoName();
 		bool res= false;
 		if(preprocName == "Sobel")

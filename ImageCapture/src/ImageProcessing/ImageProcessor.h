@@ -48,10 +48,11 @@ struct ConvHandler
 {
   ConvHandler(Kernel& kernel)
   : mKernel(kernel)
-  , mKernelUnitsSize(mKernel.Get().size())
+  , mKernelUnitsSize(kernel.Get().size())
   , mKernelSize(mKernel.Size())
   , mKernelHalfSize((mKernelSize - 1)/2)
-  {}
+  {
+  }
 
   void operator()(ImageBuffer<T>& buffer,
       ImageBuffer<T>& resultBuffer, uint32_t i, uint32_t j)
@@ -147,7 +148,7 @@ public:
 };
 
 template <typename T>
-static ImageBuffer<T> RgbToGrayscale(ImageBuffer<T>& buffer)
+ImageBuffer<T> RgbToGrayscale(ImageBuffer<T>& buffer, float r, float g, float b)
 {
   uint32_t height = buffer.GetHeight();
   uint32_t width = buffer.GetWidth();
@@ -157,8 +158,8 @@ static ImageBuffer<T> RgbToGrayscale(ImageBuffer<T>& buffer)
       for(uint32_t j = 0; j < width; ++ j)
       {
 	  T* rgb = buffer.GetElement(i, j);
-	  float grayScale = rgb[0]*0.299f+rgb[1]*0.587f+rgb[2]*0.11f;
-	  *resultBuffer.GetElement(i, j) = grayScale < 255 ? grayScale : 255;
+	  float grayScale = rgb[0]*r+rgb[1]*g+rgb[2]*b;
+	  *resultBuffer.GetElement(i, j) = Normalize<T>(grayScale);
       }
   }
   return resultBuffer;

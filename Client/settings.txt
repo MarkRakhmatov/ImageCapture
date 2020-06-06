@@ -1,6 +1,8 @@
 	string imageSrcType{"Folder"}
 	string imageSrcName{"/home/debian/Earth"}
 	
+	string RGB[]{"0.289", "0.587", "0.11"}
+	
 	string prewittKernels[]
 	{
 		"3",
@@ -30,7 +32,7 @@
 	string customKernels[]
 	{
 		"9",
-		"-25 0 0 0 0 0 0 0 -25
+	    "-25 0 0 0 0 0 0 0 -25
 		 0 0 0 0 0 0 0 0 0
 		 0 0 0 0 0 0 0 0 0
 		 0 0 0 0 20 0 0 0 0
@@ -39,6 +41,7 @@
 		 0 0 0 0 0 0 0 0 0
 		 0 0 0 0 0 0 0 0 0 
 		-25 0 0 0 0 0 0 0 -25",
+		
 		"3",
 		"0.111  0.111  0.111
 		 0.111  0.111  0.111

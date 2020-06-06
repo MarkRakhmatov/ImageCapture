@@ -20,8 +20,8 @@ namespace ServerSide
 	int GetZoneBrihtness(ImageBuffer<unsigned char> &img, int column, int row, int zoneSize)
 	{
 		int brightness = 0;
-		int rows = row + zoneSize;
-		int columns = column + zoneSize;
+		const int rows = row + zoneSize;
+		const int columns = column + zoneSize;
 		for (int i = column; i < columns; ++i)
 		{
 			for (int j = row; j < rows; ++j)
@@ -45,30 +45,37 @@ namespace ServerSide
 
 		int R = 6370;
 		int h = 408;
-
-		RET_ON_TRUE((pointB.y - pointA.y) == 0, ECalculationsStatus::FAIL);
+		Point pointE;
+		Point pointD;
+		RET_ON_TRUE((pointB.y - pointC.y) == 0, ECalculationsStatus::FAIL);
 		float A1 = static_cast<float>(pointB.x - pointA.x)
 											/ (pointB.y - pointA.y);
 
-		RET_ON_TRUE((pointC.y - pointB.y) == 0, ECalculationsStatus::FAIL);
-		float B1 = (pointA.y + pointB.y) / 2 +
-				((pointA.x + pointB.x) / 2)*(pointC.x - pointB.x) / (pointC.y - pointB.y);
+		pointE.y = (pointA.y + pointC.y) / 2;
+		pointE.x = (pointA.x + pointC.x) / 2;
 
-		float A2 = static_cast<float>(pointC.x - pointB.x) / (pointC.y - pointB.y);
+		RET_ON_TRUE((pointB.y - pointC.y) == 0, ECalculationsStatus::FAIL);
+		float B1 =  pointE.y +
+				pointE.x*(pointC.x - pointA.x) / (pointB.y - pointC.y);
 
-		RET_ON_TRUE((pointB.y - pointA.y) == 0, ECalculationsStatus::FAIL);
-		float B2 = (pointB.y + pointC.y) / 2.0f + ((pointA.x + pointB.x) / 2.0f)*(pointB.x - pointA.x) / (pointB.y - pointA.y);
+		float A2 = static_cast<float>(pointB.x - pointC.x) / (pointB.y - pointC.y);
+
+		pointD.y = (pointC.y + pointB.y) / 2;
+		pointD.x = (pointC.x + pointB.x) / 2;
+
+		float B2 = pointD.y + pointD.x*(pointB.x - pointC.x) / (pointB.y - pointC.y);
 
 		RET_ON_TRUE((A2 - A1) == 0, ECalculationsStatus::FAIL);
-		float X0 = (B2 - B1) / (A2 - A1);
-		float Y0 = B1 - A1 * (B2 - B1) / (A2 - A1);
-		float r = sqrt(sqr(pointA.x - X0) + sqr(pointA.y - Y0));
+		Point pointO;
+		pointO.x = (B2 - B1) / (A2 - A1);
+		pointO.y = B1 - A1 * (B2 - B1) / (A2 - A1);
+		float r = sqrt(sqr(pointA.x - pointO.x) + sqr(pointA.y - pointO.y));
 		float rf = (R*sqrt(1 - sqr(R / (R + h))));
 		float n = rf / r;
 		float hr = R * (1 / (sqrt(1 / sqr(r / R))) - 1);
 
-		RET_ON_TRUE((pointC.x - pointA.x) == 0, ECalculationsStatus::FAIL);
-		fi = atan(static_cast<float>(pointC.y - pointA.y) / (pointC.x - pointA.x)) * 180 / 3.14;
+		RET_ON_TRUE((pointB.x - pointA.x) == 0, ECalculationsStatus::FAIL);
+		fi = atan((pointB.y - pointA.y) / (pointB.x - pointA.x)) * 180 / 3.14;
 		gamma = (sqr(r / R) < 1) ? asinf(sqrt(1 - sqr(r / R))) * 180 / 3.14 : asinf(sqrt(1 - sqr(R / r))) * 180 / 3.14;
 
 		std::cout << "R " << R << std::endl;
@@ -78,8 +85,8 @@ namespace ServerSide
 		std::cout << "B1 " << B1 << std::endl;
 		std::cout << "A2 " << A2 << std::endl;
 		std::cout << "B2 " << B2 << std::endl;
-		std::cout << "X0 " << X0 << std::endl;
-		std::cout << "Y0 " << Y0 << std::endl;
+		std::cout << "X0 " << pointO.x << std::endl;
+		std::cout << "Y0 " << pointO.y << std::endl;
 		std::cout << "r " << r << std::endl;
 		std::cout << "n " << n << std::endl;
 		std::cout << "fi " << fi << std::endl;
@@ -159,11 +166,11 @@ namespace ServerSide
 		RIGHT_TO_LEFT
 	};
 
-	Point GetPointByCoordinates(uint32_t width, uint32_t height, uint32_t column, uint32_t row)
+	Point ConvertCoordinates(uint32_t width, uint32_t height, Point inputPoint)
 	{
 		Point point;
-		point.x = column;
-		point.y = row;
+		point.x = inputPoint.x-width/2;
+		point.y = height/2 - inputPoint.y;
 		return point;
 	}
 
@@ -186,8 +193,8 @@ namespace ServerSide
 					tempBrightness = GetZoneBrihtness(img, row, column, zoneSize);
 					if(tempBrightness > trashhold)
 					{
-						points[pointsCounter] = GetPointByCoordinates(width, height
-								, column+zoneSize/2, row+zoneSize/2);
+						points[pointsCounter].x = column+zoneSize/2;
+						points[pointsCounter].y = row+zoneSize/2;
 						++pointsCounter;
 						break;
 					}
@@ -206,7 +213,7 @@ namespace ServerSide
 				}
 			}
 		}
-		if(pointsCounter<3)
+		if(pointsCounter < 3)
 		{
 			return ECalculationsStatus::FAIL;
 		}
@@ -255,7 +262,8 @@ namespace ServerSide
 	ECalculationsStatus
 	GetHorizonPointsInfo(ImageBuffer<unsigned char> &img, HorizonPointsInfo& pointsInfo)
 	{
-
+		const uint32_t width = img.GetWidth();
+		const uint32_t height = img.GetHeight();
 		int arrBright[zonesColumnCount][zonesRowCount]{};
 		ECalculationsStatus res = PreAnalysis(img, arrBright);
 		RET_ON_TRUE(res == ECalculationsStatus::FAIL, res);
@@ -267,8 +275,10 @@ namespace ServerSide
 		const int32_t trashhold = SettingsHandler::Get().GetDetectionThreshold();
 		res = FindHorizonPoints(img, direction, trashhold, pointsInfo.points);
 		RET_ON_TRUE(res == ECalculationsStatus::FAIL, res);
-
-		res = GetAnglesByPoints(pointsInfo.points[0], pointsInfo.points[1], pointsInfo.points[2],
+		Point pointAConverted = ConvertCoordinates(width, height, pointsInfo.points[0]);
+		Point pointCConverted = ConvertCoordinates(width, height, pointsInfo.points[1]);
+		Point pointBConverted = ConvertCoordinates(width, height, pointsInfo.points[2]);
+		res = GetAnglesByPoints(pointAConverted, pointCConverted, pointBConverted,
 				pointsInfo.fi, pointsInfo.gamma);
 
 		return res;
