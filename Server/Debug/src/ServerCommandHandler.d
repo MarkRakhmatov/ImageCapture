@@ -8,8 +8,7 @@ src/ServerCommandHandler.o: ../src/ServerCommandHandler.cpp \
  /home/mark/workspace/ImageCapture/ClientServerCommon/src/Socket.h \
  /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnShutdownSrv.h \
  /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnProcessImageSrv.h \
- /home/mark/workspace/ImageCapture/Server/src/IImageSource.h \
- /home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageBuffer.h
+ /home/mark/workspace/ImageCapture/Server/src/IImageSource.h
 
 ../src/ServerCommandHandler.h:
 
@@ -30,5 +29,3 @@ src/ServerCommandHandler.o: ../src/ServerCommandHandler.cpp \
 /home/mark/workspace/ImageCapture/Server/CommandsHandling/OnProcessImageSrv.h:
 
 /home/mark/workspace/ImageCapture/Server/src/IImageSource.h:
-
-/home/mark/workspace/ImageCapture/ImageCapture/src/ImageProcessing/ImageBuffer.h:

@@ -81,6 +81,8 @@ namespace Parser
 
 			if(config.IsStringEnd(ch))
 			{
+				status = objectData.AppendData(Char{0});
+				RET_ON_FALSE(status == EStatus::SUCCESS, status);
 				break;
 			}
 

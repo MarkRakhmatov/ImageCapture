@@ -46,53 +46,144 @@ namespace ServerSide
 	bool SettingsHandler::ReadSettings()
 	{
 		RET_ON_FALSE(ReadKernels(), false);
-		return ReadImageSourceInfo();
-
-	}
-
-	bool SettingsHandler::ReadImageSourceInfo()
-	{
-		std::string imgSourceTypeStr{"imageSrcType"};
+		{
+		const std::string imgSourceTypeStr{"imageSrcType"};
 		Parser::ObjectDescriptor<char>* imgSourceType = GetObjectByName(imgSourceTypeStr);
 		RET_ON_FALSE(imgSourceType, false);
 		mImageSourceType = Parser::AsString(imgSourceType->objectData);
-		std::string imgSourceNameStr{"imageSrcName"};
+		}
+
+		{
+		const std::string imgSourceNameStr{"imageSrcName"};
 		Parser::ObjectDescriptor<char>* imgSourceName = GetObjectByName(imgSourceNameStr);
 		RET_ON_FALSE(imgSourceName, false);
 		mImageSourceName = Parser::AsString(imgSourceName->objectData);
-		return true;
+		}
 
+		{
+		const std::string preanalysisWindowSizeStr{"preanalysisWindowSize"};
+		Parser::ObjectDescriptor<char>* preanalysisWindowSizeObj = GetObjectByName(preanalysisWindowSizeStr);
+		RET_ON_FALSE(preanalysisWindowSizeObj, false);
+		mPreanalysisWindowSize = Parser::AsInt<int32_t>(preanalysisWindowSizeObj->objectData);
+		}
+
+		{
+		const std::string pointDetectionWindfowSizeStr{"pointDetectionWindfowSize"};
+		Parser::ObjectDescriptor<char>* pointDetectionWindfowSize = GetObjectByName(pointDetectionWindfowSizeStr);
+		RET_ON_FALSE(pointDetectionWindfowSize, false);
+		mPointDetectionWindfowSize = Parser::AsInt<int32_t>(pointDetectionWindfowSize->objectData);
+		}
+
+		{
+		const std::string detectionThresholdStr{"detectionThreshold"};
+		Parser::ObjectDescriptor<char>* detectionThreshold = GetObjectByName(detectionThresholdStr);
+		RET_ON_FALSE(detectionThreshold, false);
+		mDetectionThreshold = Parser::AsInt<int32_t>(detectionThreshold->objectData);
+		}
+
+		{
+		const std::string brightnessLowerBoundStr{"brightnessLowerBound"};
+		Parser::ObjectDescriptor<char>* brightnessLowerBound = GetObjectByName(brightnessLowerBoundStr);
+		RET_ON_FALSE(brightnessLowerBound, false);
+		mBrightnessLowerBound = Parser::AsInt<int32_t>(brightnessLowerBound->objectData);
+		}
+
+		{
+		const std::string preprocessingAlgoNameStr{"preprocessingAlgo"};
+		Parser::ObjectDescriptor<char>* preprocessingAlgoName = GetObjectByName(preprocessingAlgoNameStr);
+		RET_ON_FALSE(preprocessingAlgoName, false);
+		mPreprocessingAlgoName = Parser::AsString(preprocessingAlgoName->objectData);
+		}
+
+		return true;
 	}
 
-	bool SettingsHandler::ReadKernels()
+	int32_t SettingsHandler::GetPreanalysisWindowSize()
 	{
-		std::string kernelsName{"kernels"};
-		auto* object = GetObjectByName(kernelsName);
+		return mPreanalysisWindowSize;
+	}
+
+	int32_t SettingsHandler::GetPointDetectionWindfowSize()
+	{
+		return mPointDetectionWindfowSize;
+	}
+	int32_t SettingsHandler::GetDetectionThreshold()
+	{
+		return mDetectionThreshold;
+	}
+
+	int32_t SettingsHandler::GetBrightnessLowerBound()
+	{
+		return mBrightnessLowerBound;
+	}
+
+	std::vector<Kernel>& SettingsHandler::GetSobelKernels()
+	{
+		return mSobelKernels;
+	}
+
+	std::vector<Kernel>& SettingsHandler::GetPrewittKernels()
+	{
+		return mPrewittKernels;
+	}
+
+	const std::string& SettingsHandler::GetPreprocessingAlgoName()
+	{
+		return mPreprocessingAlgoName;
+	}
+
+	bool SettingsHandler::ReadKernelsByName(const std::string& objName, std::vector<Kernel>& kernels)
+	{
+		auto* object = GetObjectByName(objName);
 		RET_ON_FALSE(object, false);
 		RET_ON_FALSE(object->type == EType::STRING, false);
 		RET_ON_FALSE(object->arrayDepth == 1, false);
+
 		auto& subData = object->objectData.GetSubData();
 		uint32_t size = static_cast<uint32_t>(subData.size());
 		RET_ON_FALSE(size || size%2 != 0, false);
-		mKernels.resize(size/2);
+		kernels.resize(size/2);
+
 		uint32_t objectsCounter = 0;
 		uint32_t kernelSize = 0;
 		std::vector<KernelUnit> kernelData;
+
 		bool res{false};
 		for(uint32_t i = 0; i < subData.size(); ++i, ++objectsCounter)
 		{
 			res = ReadKernelSize(subData[i], kernelSize);
 			RET_ON_FALSE(res, false);
-			mKernels[objectsCounter].SetSize(kernelSize);
-			res = ReadKernelUnits(subData[++i], mKernels[objectsCounter]);
+			kernels[objectsCounter].SetSize(kernelSize);
+			res = ReadKernelUnits(subData[++i], kernels[objectsCounter]);
 			RET_ON_FALSE(res, false);
 		}
 		return true;
 	}
 
-	std::vector<Kernel>& SettingsHandler::GetKernels()
+	bool SettingsHandler::ReadKernels()
 	{
-		return mKernels;
+		bool res = false;
+		{
+		const std::string customKernelsName{"customKernels"};
+		res = ReadKernelsByName(customKernelsName, mCustomKernels);
+		RET_ON_FALSE(res, false);
+		}
+		{
+		const std::string sobelKernelsName{"sobelKernels"};
+		res = ReadKernelsByName(sobelKernelsName, mSobelKernels);
+		RET_ON_FALSE(res, false);
+		}
+		{
+		const std::string prewittKernelsName{"prewittKernels"};
+		res = ReadKernelsByName(prewittKernelsName, mPrewittKernels);
+		RET_ON_FALSE(res, false);
+		}
+		return true;
+	}
+
+	std::vector<Kernel>& SettingsHandler::GetCustomKernels()
+	{
+		return mCustomKernels;
 	}
 
 	Parser::ObjectDescriptor<char>* SettingsHandler::GetObjectByName(
@@ -126,6 +217,10 @@ namespace ServerSide
 	SettingsHandler::SettingsHandler()
 	: mImageSourceType("Device")
 	, mImageSourceName("/dev/video0")
+	, mPreanalysisWindowSize(30)
+	, mPointDetectionWindfowSize(15)
+	, mDetectionThreshold(120)
+	, mBrightnessLowerBound(50)
 	{}
 
 }

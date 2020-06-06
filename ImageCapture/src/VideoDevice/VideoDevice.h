@@ -7,7 +7,7 @@
 #include "MappedBuffer.h"
 #include "DescriptorHolder.h"
 #include "CallWrapper.h"
-#include "JpegHelper.h"
+#include <vector>
 #include "Utils.h"
 
 class VideoDevice
@@ -43,4 +43,4 @@ private:
   const std::chrono::milliseconds mTimeout{500};
 };
 
-ImageBuffer<unsigned char> GetImageBufferFromDevice(VideoDevice& device);
+std::vector<unsigned char> GetImageBufferFromDevice(VideoDevice& device);

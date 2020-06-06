@@ -8,7 +8,7 @@ DeviceImageSource::DeviceImageSource(const std::string &deviceName, int width, i
 {
 }
 
-	ImageBuffer<unsigned char> DeviceImageSource::GetImage()
+	std::vector<unsigned char> DeviceImageSource::GetImage()
 	{
 		return GetImageBufferFromDevice(mDevice);
 	}

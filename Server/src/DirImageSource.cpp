@@ -12,17 +12,18 @@ namespace ServerSide
 	{
 	}
 
-	ImageBuffer<unsigned char> DirImageSource::GetImage()
+	std::vector<unsigned char> DirImageSource::GetImage()
 	{
-		ImageBuffer<unsigned char> buffer;
 		std::vector<unsigned char> jpegBuff;
 		bool res = GetJpegFromFile(jpegBuff);
-		RET_ON_FALSE(res, buffer);
-		buffer = JpegHelper::Decompress(jpegBuff.data(), jpegBuff.size(), TJPF::TJPF_GRAY);
-		return buffer;
+		if(!res)
+		{
+			return {};
+		}
+		return jpegBuff;
 	}
 
-	bool DirImageSource::GetJpegFromFile(std::vector<unsigned char> &jpegBuff)
+	bool DirImageSource::GetJpegFromFile(std::vector<unsigned char>& jpegBuff)
 	{
 		struct dirent* entry = nullptr;
 		for(;;)

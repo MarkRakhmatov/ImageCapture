@@ -9,5 +9,20 @@ namespace ServerSide
 		FAIL
 	};
 
-	ECalculationsStatus GetAngles(ImageBuffer<unsigned char>& img, int32_t& x, int32_t& y);
+
+	struct Point
+	{
+		int x;
+		int y;
+	};
+
+	struct HorizonPointsInfo
+	{
+		std::vector<Point> points;
+		float fi;
+		float gamma;
+
+	};
+
+	ECalculationsStatus GetHorizonPointsInfo(ImageBuffer<unsigned char>& img, HorizonPointsInfo& pointsInfo);
 }

@@ -17,8 +17,8 @@ public:
   , mSize(size)
   {}
   Kernel() = default;
-  Kernel(Kernel&) = default;
-  Kernel& operator =(Kernel&) = default;
+  Kernel(const Kernel&) = default;
+  Kernel& operator =(const Kernel&) = default;
   Kernel(Kernel&& ker)
   : mKernelUnits(std::move(ker.mKernelUnits))
   , mSize(ker.mSize)

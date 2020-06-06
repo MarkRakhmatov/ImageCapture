@@ -1,12 +1,33 @@
-
-	string testArr[]{"1","2","3"}
-	string testArr1[][]{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}}
-	string testArr2[][][]{{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}},
-							{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}},
-							{{"1","2","3"}, {"1","2","3"}, {"1","2","3"}}}
 	string imageSrcType{"Folder"}
 	string imageSrcName{"/home/debian/Earth"}
-	string kernels[]
+	
+	string prewittKernels[]
+	{
+		"3",
+		"1 0 -1
+		 1 0 -1
+		 1 0 -1",
+		 
+		 "3",
+		 "1  1  1
+		  0  0  0
+		 -1 -1 -1"		
+	}
+	
+	string sobelKernels[]
+	{
+		"3",
+		"1 0 -1
+		 2 0 -2
+		 1 0 -1",
+		 
+		 "3",
+		 "1  2  1
+		  0  0  0
+		 -1 -2 -1"		
+	}
+	
+	string customKernels[]
 	{
 		"9",
 		"-25 0 0 0 0 0 0 0 -25
@@ -23,3 +44,11 @@
 		 0.111  0.111  0.111
 		 0.111  0.111  0.111"
 	}
+	
+	string preprocessingAlgo{""}
+	
+	int32 brightnessLowerBound{30}
+	int32 preanalysisWindowSize{30}
+	
+	int32 detectionThreshold{120}
+	int32 pointDetectionWindfowSize{20}

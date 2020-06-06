@@ -1,5 +1,7 @@
 #include "OnCapture.h"
 #include "Command.h"
+#include "CommunicationUtils.h"
+#include <sstream>
 
 namespace ClientSide
 {
@@ -40,14 +42,22 @@ namespace ClientSide
 		  return status;
 	  }
 
-	  int32_t x = 0;
-	  int32_t y = 0;
-
-	  bool res = sock.ReadData(&x, &y);
+	  float x = 0;
+	  float y = 0;
+	  std::stringstream converter;
+	  std::string fi, gamma;
+	  bool res = Communication::ReadString(sock, fi);
 	  if(!res)
 	  {
 		  return EConnectionStatus::FAIL;
 	  }
+	  res = Communication::ReadString(sock, gamma);
+	  if(!res)
+	  {
+		  return EConnectionStatus::FAIL;
+	  }
+	  converter << fi << " "<<gamma;
+	  converter >> x >> y;
 	  std::cout << "x = " << x << std::endl;
 	  std::cout << "y = " << y << std::endl;
 	  return status;

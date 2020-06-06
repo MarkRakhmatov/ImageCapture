@@ -44,7 +44,7 @@ public:
   ImageBuffer() = default;
   ImageBuffer(ImageBuffer&) = delete;
   ImageBuffer& operator=(ImageBuffer&) = delete;
-
+  using ElementType = T;
   ImageBuffer(int width, int height, EPixelType pixelType)
   : mWidth(width)
   , mHeight(height)

@@ -1,24 +1,15 @@
 #include "Calculations.h"
 #include "CodeGeneration.h"
+#include "SettingsHandler.h"
+
 #include <iostream>
 #include <errno.h>
 #include <cmath>
 
 namespace ServerSide
 {
-
-	const int zoneSize = 30;
 	const int zonesRowCount = 3;
 	const int zonesColumnCount = 3;
-
-	const int brightnessLowerBound = 50;
-	const int brightnessUpperBound = 130;
-
-	struct Point
-	{
-		int x;
-		int y;
-	};
 
 	template<typename T>
 	T sqr(T num)
@@ -41,17 +32,16 @@ namespace ServerSide
 		return brightness/(zoneSize*zoneSize);
 	}
 
-	ECalculationsStatus GetAnglesByPoints(Point pointA, Point pointB, Point pointC, float& fi, float& gamma)
+	ECalculationsStatus GetAnglesByPoints(Point pointA, Point pointC, Point pointB, float& fi, float& gamma)
 	{
 		std::cout << "point A.x = " << pointA.x << std::endl;
 		std::cout << "point A.y = " << pointA.y << std::endl;
 
-		std::cout << "point B.x = " << pointB.x << std::endl;
-		std::cout << "point B.y = " << pointB.y << std::endl;
-
 		std::cout << "point C.x = " << pointC.x << std::endl;
 		std::cout << "point C.y = " << pointC.y << std::endl;
 
+		std::cout << "point B.x = " << pointB.x << std::endl;
+		std::cout << "point B.y = " << pointB.y << std::endl;
 
 		int R = 6370;
 		int h = 408;
@@ -103,6 +93,8 @@ namespace ServerSide
 		int width = img.GetWidth();
 		int height = img.GetHeight();
 
+		const int32_t zoneSize = SettingsHandler::Get().GetPointDetectionWindfowSize();
+		const int32_t brightnessLowerBound = SettingsHandler::Get().GetBrightnessLowerBound();
 		const int columnStep = (height -zoneSize)/(zonesColumnCount-1);
 		const int rowStep = (width - zoneSize)/(zonesRowCount-1);
 
@@ -167,30 +159,50 @@ namespace ServerSide
 		RIGHT_TO_LEFT
 	};
 
+	Point GetPointByCoordinates(uint32_t width, uint32_t height, uint32_t column, uint32_t row)
+	{
+		Point point;
+		point.x = column;
+		point.y = row;
+		return point;
+	}
+
 	ECalculationsStatus FindHorizonPoints(ImageBuffer<unsigned char> &img, EDirection direction,
 			int trashhold, std::vector<Point>& points)
 	{
 		uint32_t width = img.GetWidth();
 		uint32_t height = img.GetHeight();
 		const int zoneSize = 10;
-		points.resize(8);
+		points.resize(3);
 
 		int tempBrightness = 0;
 		uint32_t pointsCounter = 0;
 		if(direction == EDirection::HEAD_TO_TAIL)
 		{
-			for(uint32_t j = zoneSize; j < width - zoneSize; j+=(width - 3*zoneSize)/2)
+			for(uint32_t column = zoneSize; column < width - zoneSize && pointsCounter < 3; )
 			{
-				for(uint32_t i = zoneSize; i < height - zoneSize; ++i)
+				for(uint32_t row = 3*zoneSize; row < height - zoneSize; ++row)
 				{
-					tempBrightness = GetZoneBrihtness(img, i, j, zoneSize);
+					tempBrightness = GetZoneBrihtness(img, row, column, zoneSize);
 					if(tempBrightness > trashhold)
 					{
-						points[pointsCounter].x = i;
-						points[pointsCounter].y = j;
+						points[pointsCounter] = GetPointByCoordinates(width, height
+								, column+zoneSize/2, row+zoneSize/2);
 						++pointsCounter;
 						break;
 					}
+				}
+				if(pointsCounter == 1)
+				{
+					column+=(width - column)/2;
+				}
+				else if(pointsCounter == 2)
+				{
+					column = (width - 3*zoneSize);
+				}
+				else
+				{
+					column+=zoneSize;
 				}
 			}
 		}
@@ -204,6 +216,7 @@ namespace ServerSide
 	ECalculationsStatus
 	GetDirection(int arrBright[zonesColumnCount][zonesRowCount], EDirection& direction)
 	{
+		const int32_t brightnessLowerBound = SettingsHandler::Get().GetBrightnessLowerBound();
 		int lightZonesCount = 0;
 		for (int j = 0; j < zonesColumnCount; ++j)
 		{
@@ -240,7 +253,7 @@ namespace ServerSide
 	}
 
 	ECalculationsStatus
-	GetAngles(ImageBuffer<unsigned char> &img, int32_t& x, int32_t& y)
+	GetHorizonPointsInfo(ImageBuffer<unsigned char> &img, HorizonPointsInfo& pointsInfo)
 	{
 
 		int arrBright[zonesColumnCount][zonesRowCount]{};
@@ -251,17 +264,12 @@ namespace ServerSide
 		res = GetDirection(arrBright, direction);
 		RET_ON_TRUE(res == ECalculationsStatus::FAIL, res);
 
-		std::vector<Point> points;
-		int trashhold = 120;
-		res = FindHorizonPoints(img, direction, trashhold, points);
+		const int32_t trashhold = SettingsHandler::Get().GetDetectionThreshold();
+		res = FindHorizonPoints(img, direction, trashhold, pointsInfo.points);
 		RET_ON_TRUE(res == ECalculationsStatus::FAIL, res);
 
-		float fi{};
-		float gamma{};
-		res = GetAnglesByPoints(points[0], points[1], points[2], fi, gamma);
-
-		x = fi;
-		y = gamma;
+		res = GetAnglesByPoints(pointsInfo.points[0], pointsInfo.points[1], pointsInfo.points[2],
+				pointsInfo.fi, pointsInfo.gamma);
 
 		return res;
 	}

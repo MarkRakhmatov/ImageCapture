@@ -1,6 +1,7 @@
 #pragma once
 #include "IOnCommandSrv.h"
 #include "IImageSource.h"
+#include <memory>
 
 namespace ServerSide
 {

@@ -1,5 +1,6 @@
 #include "IImageSource.h"
 #include "VideoDevice/VideoDevice.h"
+#include <string>
 
 namespace ServerSide
 {
@@ -8,7 +9,7 @@ namespace ServerSide
 	{
 	public:
 		DeviceImageSource(const std::string& deviceName, int width, int height);
-		ImageBuffer<unsigned char> GetImage() override;
+		std::vector<unsigned char> GetImage() override;
 	private:
 		VideoDevice mDevice;
 	};

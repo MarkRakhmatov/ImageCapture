@@ -21,12 +21,19 @@ namespace ServerSide
 		Parser::ObjectDescriptor<char>* GetObjectByName(const std::string& name);
 		Objects& GetSettings();
 		bool ReadSettings();
-		std::vector<Kernel>& GetKernels();
+		std::vector<Kernel>& GetCustomKernels();
+		std::vector<Kernel>& GetSobelKernels();
+		std::vector<Kernel>& GetPrewittKernels();
 		const std::string& GetImageSourceName();
 		const std::string& GetImageSourceType();
+		const std::string& GetPreprocessingAlgoName();
+		int32_t GetPreanalysisWindowSize();
+		int32_t GetPointDetectionWindfowSize();
+		int32_t GetDetectionThreshold();
+		int32_t GetBrightnessLowerBound();
 	private:
 		SettingsHandler();
-		bool ReadImageSourceInfo();
+		bool ReadKernelsByName(const std::string& objName, std::vector<Kernel>& kernels);
 		bool ReadKernelUnits(const Parser::ObjectData& obj, Kernel& kernel);
 		bool ReadKernelSize(const Parser::ObjectData& obj, uint32_t& kernelSize);
 		bool ReadKernels();
@@ -34,6 +41,13 @@ namespace ServerSide
 		Objects mSettingsObjects;
 		std::string mImageSourceType;
 		std::string mImageSourceName;
-		std::vector<Kernel> mKernels;
+		std::string mPreprocessingAlgoName;
+		int32_t mPreanalysisWindowSize;
+		int32_t mPointDetectionWindfowSize;
+		int32_t mDetectionThreshold;
+		int32_t mBrightnessLowerBound;
+		std::vector<Kernel> mCustomKernels;
+		std::vector<Kernel> mSobelKernels;
+		std::vector<Kernel> mPrewittKernels;
 	};
 }

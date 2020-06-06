@@ -1,5 +1,5 @@
 #pragma once
-#include "ImageBuffer.h"
+#include <vector>
 
 namespace ServerSide
 {
@@ -8,6 +8,6 @@ namespace ServerSide
 	{
 	public:
 		virtual ~IImageSource() = default;
-		virtual ImageBuffer<T> GetImage() = 0;
+		virtual std::vector<T> GetImage() = 0;
 	};
 }

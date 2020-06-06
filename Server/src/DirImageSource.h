@@ -3,6 +3,7 @@
 #include <IImageSource.h>
 #include <dirent.h>
 #include "ResourceHolder.h"
+#include <string>
 
 namespace ServerSide
 {
@@ -10,7 +11,7 @@ namespace ServerSide
 	{
 	public:
 		DirImageSource(const std::string& dirName);
-		ImageBuffer<unsigned char> GetImage() override;
+		std::vector<unsigned char> GetImage() override;
 	private:
 		bool GetJpegFromFile(std::vector<unsigned char>& jpegBuff);
 	private:

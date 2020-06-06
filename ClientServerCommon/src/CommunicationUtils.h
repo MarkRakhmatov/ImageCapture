@@ -5,7 +5,7 @@
 
 namespace Communication
 {
-	bool SendString(Socket& socket, const std::string& str)
+	static bool SendString(Socket& socket, const std::string& str)
 	{
 		bool res = false;
 		uint64_t size = str.size();
@@ -20,7 +20,7 @@ namespace Communication
 		return true;
 	}
 
-	bool ReadString(Socket& socket, std::string& str)
+	static bool ReadString(Socket& socket, std::string& str)
 	{
 		bool res = false;
 

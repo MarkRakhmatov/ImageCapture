@@ -33,7 +33,20 @@ public:
     }
     auto pixSize = tjPixelSize[pixelFormat];
     int pitch = pixSize * width;
-    ImageBuffer<unsigned char> buffer(width, height, EPixelType::GRAY_SCALE);
+    EPixelType pixelType;
+    if(pixelFormat == TJPF::TJPF_GRAY)
+    {
+	pixelType = EPixelType::GRAY_SCALE;
+    }
+    else if(pixelFormat == TJPF::TJPF_RGB)
+    {
+	pixelType = EPixelType::RGB;
+    }
+    else
+    {
+	return ImageBuffer<unsigned char>{};
+    }
+    ImageBuffer<unsigned char> buffer(width, height, pixelType);
     res = tjDecompress2(jHandle.Get(), jpegBuff, jpegSize, buffer.Get(), width, pitch, height, pixelFormat, flags);
     return buffer;
   }
