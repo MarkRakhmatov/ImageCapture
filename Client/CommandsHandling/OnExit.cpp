@@ -1,8 +1,12 @@
 #include "OnExit.h"
 #include "Command.h"
 
-EConnectionStatus
-OnExit::Handle(Socket& sock)
+namespace ClientSide
 {
-  return EConnectionStatus::SHUTDOWN;
+	using namespace Communication;
+	EConnectionStatus
+	OnExit::Handle(Socket& sock)
+	{
+	  return EConnectionStatus::SHUTDOWN;
+	}
 }

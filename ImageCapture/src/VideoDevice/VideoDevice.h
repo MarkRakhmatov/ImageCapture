@@ -7,17 +7,18 @@
 #include "MappedBuffer.h"
 #include "DescriptorHolder.h"
 #include "CallWrapper.h"
-#include "JpegHelper.h"
+#include <vector>
 #include "Utils.h"
 
 class VideoDevice
 {
 public:
-  explicit VideoDevice(const std::string& deviceName);
+  explicit VideoDevice(const std::string& deviceName, int width = 1920, int height = 1080);
   VideoDevice(VideoDevice&& dev);
   VideoDevice& operator=(VideoDevice&& dev);
   VideoDevice(const VideoDevice& res) = delete;
   VideoDevice& operator=(const VideoDevice& res) = delete;
+  void Reset(const std::string& deviceName, int width = 1920, int height = 1080);
 
   MappedBuffer& GetBuffer();
   void HandleParameters();
@@ -28,16 +29,18 @@ private:
     return WaitForAsyncCall<decltype(CheckIoctl), CheckIoctl>
       (ioctl, mTimeout, mDescriptor.Get(), request, pRequestData);
   }
-  void OpenDevice(const std::string& deviceName);
-  void SetImageFormat(int width = 1920, int height = 1080);
+  void OpenDevice();
+  void SetImageFormat();
   void InitBuffer();
   void Reset();
 private:
   DescriptorHolder mDescriptor{};
   MappedBuffer mBuffer{};
   std::string mDeviceName;
+  int mHeight{};
+  int mWidth{};
 
   const std::chrono::milliseconds mTimeout{500};
 };
 
-ImageBuffer<unsigned char> GetImageBufferFromDevice(VideoDevice& device);
+std::vector<unsigned char> GetImageBufferFromDevice(VideoDevice& device);

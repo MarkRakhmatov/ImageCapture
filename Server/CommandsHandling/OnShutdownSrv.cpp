@@ -1,13 +1,17 @@
 #include "OnShutdownSrv.h"
 
-EConnectionStatus
-OnShutdownSrv::Handle(Socket& sock)
+namespace ServerSide
 {
-  EConnectionStatus response = EConnectionStatus::DISCONNECT;
-  auto res = sock.SendData(&response);
-  if(!res.second)
-  {
-      std::cout << "Failed to send status!" << std::endl;
-  }
-  return EConnectionStatus::SHUTDOWN;
+	using namespace Communication;
+	EConnectionStatus
+	OnShutdownSrv::Handle(Socket& sock)
+	{
+	  EConnectionStatus response = EConnectionStatus::DISCONNECT;
+	  bool res = sock.SendData(&response);
+	  if(!res)
+	  {
+		  std::cout << "Failed to send status!" << std::endl;
+	  }
+	  return EConnectionStatus::SHUTDOWN;
+	}
 }

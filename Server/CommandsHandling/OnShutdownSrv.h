@@ -2,8 +2,11 @@
 
 #include "IOnCommandSrv.h"
 
-class OnShutdownSrv : public IOnCommandSrv
+namespace ServerSide
 {
-public:
-  EConnectionStatus Handle(Socket& sock);
-};
+	class OnShutdownSrv : public IOnCommandSrv
+	{
+	public:
+		Communication::EConnectionStatus Handle(Communication::Socket& sock);
+	};
+}

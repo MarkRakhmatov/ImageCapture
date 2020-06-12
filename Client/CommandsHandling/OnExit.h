@@ -1,9 +1,11 @@
 #pragma once
-
 #include "IOnCommand.h"
 
-class OnExit : public IOnCommand
+namespace ClientSide
 {
-public:
-  EConnectionStatus Handle(Socket& sock);
-};
+	class OnExit : public IOnCommand
+	{
+	public:
+		Communication::EConnectionStatus Handle(Communication::Socket& sock);
+	};
+}

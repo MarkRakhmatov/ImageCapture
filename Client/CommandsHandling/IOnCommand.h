@@ -6,10 +6,12 @@
 #include "Socket.h"
 #include "Response.h"
 
-class IOnCommand
+namespace ClientSide
 {
-public:
-  virtual ~IOnCommand(){};
-  virtual EConnectionStatus Handle(Socket& sock) = 0;
-};
-
+	class IOnCommand
+	{
+	public:
+	  virtual ~IOnCommand(){};
+	  virtual Communication::EConnectionStatus Handle(Communication::Socket& sock) = 0;
+	};
+}

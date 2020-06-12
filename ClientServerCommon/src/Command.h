@@ -1,19 +1,22 @@
 #pragma once
 #include <stdint.h>
-enum class ECommand : uint32_t
+
+namespace Communication
 {
-  PROCESS_IMAGE,
-  SERVER_SHUTDOWN,
-  EXIT,
+	enum class ECommand : uint32_t
+	{
+	  PROCESS_IMAGE,
+	  SERVER_SHUTDOWN,
+	  EXIT,
 
-  SIZE
-};
+	  SIZE
+	};
 
-enum class EProcessImage : uint32_t
-{
-  EMPTY_COMMAND,
-  SETUP_CAMERA,
-  PROCESS_IMAGE,
+	enum class EProcessImage : uint32_t
+	{
+	  SETUP_CAMERA,
+	  CAPTURE,
 
-  SIZE
-};
+	  SIZE
+	};
+}

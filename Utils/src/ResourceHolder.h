@@ -29,7 +29,11 @@ public:
   {
     return mResource;
   }
-
+  TResoure Release()
+  {
+	mOwn = false;
+	return mResource;
+  }
   void Reset()
   {
     if(mOwn)
@@ -44,7 +48,7 @@ public:
   {
     Reset();
     mResource = res;
-    mOwn = true;;
+    mOwn = true;
   }
   ~ResourceHolder()
   {

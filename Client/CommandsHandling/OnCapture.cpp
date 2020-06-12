@@ -1,83 +1,65 @@
 #include "OnCapture.h"
 #include "Command.h"
-#include <fstream>
+#include "CommunicationUtils.h"
+#include <sstream>
 
-EConnectionStatus
-OnCapture::Handle(Socket& sock)
+namespace ClientSide
 {
-  EConnectionStatus status = SendRequest(sock);
-  if(status == EConnectionStatus::FAIL)
-  {
-      return status;
-  }
-  return GetResponse(sock);
-}
+	using namespace Communication;
 
-void SendFilteringSettings(Socket& sock)
-{
-  std::string settingsFileName("settings.txt");
-  std::ifstream settings(settingsFileName);
-  std::string settingsStr;
-  std::string temp;
-  while(settings >> temp)
-  {
-      settingsStr += " " + temp;
-  }
-  settings.close();
-  uint32_t size{static_cast<uint32_t>(settingsStr.size())};
-  sock.SendData(&size);
-  if(!size)
-  {
-      std::cout << "Failed to get settings! Use default settings."<< std::endl;
-      return;
-  }
-  std::pair<int,bool> res{};
-  for(size_t i = 0; i < size; ++i)
-  {
-      res = sock.SendData(&settingsStr[i]);
-      if(!res.second)
-      {
-          std::cout << "Failed to send settings!"<< std::endl;
-          return;
-      }
-  }
+	EConnectionStatus
+	OnCapture::Handle(Socket& sock)
+	{
+	  EConnectionStatus status = SendRequest(sock);
+	  if(status == EConnectionStatus::FAIL)
+	  {
+		  return status;
+	  }
+	  return GetResponse(sock);
+	}
 
-}
+	EConnectionStatus
+	OnCapture::SendRequest(Socket& sock)
+	{
+	  EProcessImage command = EProcessImage::CAPTURE;
 
-EConnectionStatus
-OnCapture::SendRequest(Socket& sock)
-{
-  EProcessImage command = EProcessImage::PROCESS_IMAGE;
+	  bool res = sock.SendData(&command);
+	  if(!res)
+	  {
+		  return EConnectionStatus::FAIL;
+	  }
+	  return EConnectionStatus::SUCCESS;
+	}
 
-  auto res = sock.SendData(&command);
-  if(!res.second)
-  {
-      return EConnectionStatus::FAIL;
-  }
-  SendFilteringSettings(sock);
-  return EConnectionStatus::SUCCESS;
-}
+	EConnectionStatus
+	OnCapture::GetResponse(Socket& sock)
+	{
+	  EConnectionStatus status = EConnectionStatus::FAIL;
+	  sock.ReadData(&status);
 
-EConnectionStatus
-OnCapture::GetResponse(Socket& sock)
-{
-  EConnectionStatus status = EConnectionStatus::FAIL;
-  sock.ReadData(&status);
+	  if(status == EConnectionStatus::FAIL)
+	  {
+		  return status;
+	  }
 
-  if(status == EConnectionStatus::FAIL)
-  {
-      return status;
-  }
-
-  int32_t x = 0;
-  int32_t y = 0;
-
-  auto res = sock.ReadData(&x, &y);
-  if(!res.second)
-  {
-      return EConnectionStatus::FAIL;
-  }
-  std::cout << "x = " << x << std::endl
-        << "y = " << y << std::endl;
-  return status;
+	  float x = 0;
+	  float y = 0;
+	  std::stringstream converter;
+	  std::string fi, gamma;
+	  bool res = Communication::ReadString(sock, fi);
+	  if(!res)
+	  {
+		  return EConnectionStatus::FAIL;
+	  }
+	  res = Communication::ReadString(sock, gamma);
+	  if(!res)
+	  {
+		  return EConnectionStatus::FAIL;
+	  }
+	  converter << fi << " "<<gamma;
+	  converter >> x >> y;
+	  std::cout << "x = " << x << std::endl;
+	  std::cout << "y = " << y << std::endl;
+	  return status;
+	}
 }

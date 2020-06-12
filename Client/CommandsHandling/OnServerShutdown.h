@@ -1,11 +1,13 @@
 #pragma once
 
 #include "IOnCommand.h"
-
-class OnServerShutdown : public IOnCommand
+namespace ClientSide
 {
-public:
-  EConnectionStatus Handle(Socket& sock);
-private:
-  EConnectionStatus GetResponse(Socket& sock);
-};
+	class OnServerShutdown : public IOnCommand
+	{
+	public:
+		Communication::EConnectionStatus Handle(Communication::Socket& sock);
+	private:
+		Communication::EConnectionStatus GetResponse(Communication::Socket& sock);
+	};
+}

@@ -5,13 +5,13 @@ int main()
 {
   for(;;)
   {
-        Server server;
-        EConnectionStatus status = server.Listen();
+	  ServerSide::Server server;
+	  Communication::EConnectionStatus status = server.Listen();
         switch(status)
         {
-        case EConnectionStatus::FAIL:
+        case Communication::EConnectionStatus::FAIL:
           continue;
-        case EConnectionStatus::SHUTDOWN:
+        case Communication::EConnectionStatus::SHUTDOWN:
           return 0;
         default:
           continue;

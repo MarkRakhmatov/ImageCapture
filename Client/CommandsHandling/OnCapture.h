@@ -1,10 +1,13 @@
 #pragma once
 #include "IOnCommand.h"
 
-class OnCapture : public IOnCommand
+namespace ClientSide
 {
-  EConnectionStatus Handle(Socket& sock);
-private:
-  EConnectionStatus SendRequest(Socket& sock);
-  EConnectionStatus GetResponse(Socket& sock);
-};
+	class OnCapture : public IOnCommand
+	{
+		Communication::EConnectionStatus Handle(Communication::Socket& sock);
+	private:
+		Communication::EConnectionStatus SendRequest(Communication::Socket& sock);
+		Communication::EConnectionStatus GetResponse(Communication::Socket& sock);
+	};
+}
