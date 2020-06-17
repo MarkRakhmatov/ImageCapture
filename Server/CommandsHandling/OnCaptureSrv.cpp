@@ -111,17 +111,23 @@ namespace ServerSide
 		}
 		return true;
 	}
-	bool PreprocessImage(ImageBuffer<unsigned char>& originalImgBuffer, ImageBuffer<unsigned char>& resultBuffer)
+
+	ImageBuffer<unsigned char> GetGrayscaleImage(ImageBuffer<unsigned char>& originalImgBuffer)
 	{
 		auto& settingsHandler = SettingsHandler::Get();
-
 		float r{};
 		float g{};
 		float b{};
 		settingsHandler.GetRgb(r, g, b);
-		auto decomprBuffer = RgbToGrayscale<unsigned char>(originalImgBuffer, r, g, b);
-		auto width = decomprBuffer.GetWidth();
-		auto height = decomprBuffer.GetHeight();
+		return RgbToGrayscale<unsigned char>(originalImgBuffer, r, g, b);
+	}
+
+	bool PreprocessImage(ImageBuffer<unsigned char>& originalImgBuffer, ImageBuffer<unsigned char>& resultBuffer)
+	{
+		auto decomprBuffer = GetGrayscaleImage(originalImgBuffer);
+
+		const auto width = decomprBuffer.GetWidth();
+		const auto height = decomprBuffer.GetHeight();
 		if(!width || !height)
 		{
 			std::cout<<"Failed to get buffer!"<<std::endl;
@@ -129,7 +135,9 @@ namespace ServerSide
 		}
 		ImageBuffer<unsigned char> secondBuffer(width, height, decomprBuffer.GetPixelType());
 		SwapChain<ImageBuffer<unsigned char>> chain(&decomprBuffer, &secondBuffer);
-		std::string preprocName = settingsHandler.GetPreprocessingAlgoName();
+
+		auto& settingsHandler = SettingsHandler::Get();
+		const std::string& preprocName = settingsHandler.GetPreprocessingAlgoName();
 		bool res= false;
 		if(preprocName == "Sobel")
 		{
@@ -148,6 +156,7 @@ namespace ServerSide
 
 		return res;
 	}
+
 	EConnectionStatus ServerSide::OnCaptureSrv::Handle(Socket& sock)
 	{
 		EConnectionStatus response = EConnectionStatus::FAIL;
@@ -163,9 +172,14 @@ namespace ServerSide
 			auto image = mImageSource->GetImage();
 			auto originalImgBuffer = JpegHelper::Decompress(image.data(), image.size(), TJPF::TJPF_RGB);
 
+			if(originalImgBuffer.GetHeight() == 0 || originalImgBuffer.GetWidth() == 0)
+			{
+				std::cout<<"Invalid image!"<<std::endl;
+				break;
+			}
 			auto time = GetCurrentTime();
 			ImageBuffer<unsigned char> preprocessedImgBuffer;
-			res = PreprocessImage(originalImgBuffer, preprocessedImgBuffer);
+			PreprocessImage(originalImgBuffer, preprocessedImgBuffer);
 			auto compressedBuffer = JpegHelper::Compress(preprocessedImgBuffer);
 			JpegHelper::WriteBufferToFile(compressedBuffer, fileName + std::to_string(time) + "_processed.jpeg");
 

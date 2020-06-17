@@ -32,7 +32,7 @@ namespace ServerSide
 		return brightness/(zoneSize*zoneSize);
 	}
 
-	ECalculationsStatus GetAnglesByPoints(Point pointA, Point pointC, Point pointB, float& fi, float& gamma)
+	ECalculationsStatus GetAnglesByPoints(ImageBuffer<unsigned char> &img, Point pointA, Point pointC, Point pointB, float& fi, float& gamma)
 	{
 		std::cout << "point A.x = " << pointA.x << std::endl;
 		std::cout << "point A.y = " << pointA.y << std::endl;
@@ -76,7 +76,9 @@ namespace ServerSide
 
 		RET_ON_TRUE((pointB.x - pointA.x) == 0, ECalculationsStatus::FAIL);
 		fi = atan((pointB.y - pointA.y) / (pointB.x - pointA.x)) * 180 / 3.14;
-		gamma = (sqr(r / R) < 1) ? asinf(sqrt(1 - sqr(r / R))) * 180 / 3.14 : asinf(sqrt(1 - sqr(R / r))) * 180 / 3.14;
+		RET_ON_TRUE(r > R, ECalculationsStatus::FAIL);
+		float gammaRadian = asinf(sqrt(1 - sqr(r / R)));
+		gamma =  gammaRadian * 180 / 3.14;
 
 		std::cout << "R " << R << std::endl;
 		std::cout << "h " << h << std::endl;
@@ -276,9 +278,9 @@ namespace ServerSide
 		res = FindHorizonPoints(img, direction, trashhold, pointsInfo.points);
 		RET_ON_TRUE(res == ECalculationsStatus::FAIL, res);
 		Point pointAConverted = ConvertCoordinates(width, height, pointsInfo.points[0]);
-		Point pointCConverted = ConvertCoordinates(width, height, pointsInfo.points[1]);
-		Point pointBConverted = ConvertCoordinates(width, height, pointsInfo.points[2]);
-		res = GetAnglesByPoints(pointAConverted, pointCConverted, pointBConverted,
+		Point pointBConverted = ConvertCoordinates(width, height, pointsInfo.points[1]);
+		Point pointCConverted = ConvertCoordinates(width, height, pointsInfo.points[2]);
+		res = GetAnglesByPoints(img, pointAConverted, pointBConverted, pointCConverted,
 				pointsInfo.fi, pointsInfo.gamma);
 
 		return res;

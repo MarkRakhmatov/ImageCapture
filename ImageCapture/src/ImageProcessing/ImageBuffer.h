@@ -49,6 +49,7 @@ public:
   : mWidth(width)
   , mHeight(height)
   , mPixelType(pixelType)
+  , mPixSize(GetPixelSizeByType(mPixelType))
   , mBuffer(mHeight*mWidth*GetPixelSize(), T{})
   {
   }
@@ -57,6 +58,7 @@ public:
   : mWidth(otherBuffer.mWidth)
   , mHeight(otherBuffer.mHeight)
   , mPixelType(otherBuffer.mPixelType)
+  , mPixSize(otherBuffer.mPixSize)
   , mBuffer(std::move(otherBuffer.mBuffer))
   {
     otherBuffer.mWidth = 0;
@@ -68,6 +70,7 @@ public:
     std::swap(mWidth, otherBuffer.mWidth);
     std::swap(mHeight, otherBuffer.mHeight);
     std::swap(mPixelType, otherBuffer.mPixelType);
+    std::swap(mPixSize, otherBuffer.mPixSize);
     mBuffer = std::move(otherBuffer.mBuffer);
     return *this;
   }
@@ -85,7 +88,7 @@ public:
 
   uint32_t GetPixelSize() const
   {
-    return GetPixelSizeByType(mPixelType);
+    return mPixSize;
   }
   EPixelType GetPixelType() const
   {
@@ -95,12 +98,12 @@ public:
 
   T* GetElement(uint32_t i, uint32_t j)
   {
-    return &mBuffer[(i*mWidth + j)*GetPixelSize()];
+    return &mBuffer[(i*mWidth + j)*mPixSize];
   }
 
   const T* GetElement(uint32_t i, uint32_t j) const
   {
-    return &mBuffer[(i*mWidth + j)*GetPixelSize()];
+    return &mBuffer[(i*mWidth + j)*mPixSize];
   }
 
   T* Get()
@@ -116,5 +119,6 @@ private:
   uint32_t mWidth{0};
   uint32_t mHeight{0};
   EPixelType mPixelType{EPixelType::GRAY_SCALE};
+  uint32_t mPixSize{0};
   std::vector<T> mBuffer;
 };

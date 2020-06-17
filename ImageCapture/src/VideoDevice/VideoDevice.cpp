@@ -220,7 +220,7 @@ std::vector<unsigned char>
 GetImageBufferFromDevice (VideoDevice& device)
 {
   MappedBuffer& buf = device.GetBuffer();
-  std::vector<unsigned char> image(0, buf.Size());
+  std::vector<unsigned char> image(buf.Size(), 0);
   for(int i = 0; i < buf.Size(); ++i)
   {
       image[i] = static_cast<unsigned char>(buf.Get()[i]);

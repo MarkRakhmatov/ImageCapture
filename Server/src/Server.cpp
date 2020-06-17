@@ -14,13 +14,18 @@ namespace ServerSide
 	  : mListener(socket(AF_INET, SOCK_STREAM, 0))
 	{
 		mAddr.sin_family = AF_INET;
-		mAddr.sin_port = htons(3425);
+		mAddr.sin_port = htons(mPort);
 		mAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 		if(bind(mListener.Get(), reinterpret_cast<sockaddr*>(&mAddr), sizeof(mAddr)) < 0)
 		{
-			std::cout << "Failed to bind socked and address" << std::endl;
+			std::cout << "Failed to bind socket and address" << std::endl;
 			mListener.Reset();
+		}
+		int reuse = 1;
+		if(setsockopt(mListener.Get(), SOL_SOCKET, SO_REUSEPORT, &reuse, sizeof(reuse)) < 0)
+		{
+			std::cout << "Failed to set socket option" << std::endl;
 		}
 	}
 

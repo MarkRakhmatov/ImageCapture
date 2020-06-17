@@ -16,6 +16,7 @@ namespace ServerSide
 	  Communication::EConnectionStatus HandleCommand();
 	  DescriptorHolder mListener;
 	  sockaddr_in mAddr{};
+	  int mPort{3425};
 	  ServerCommandHandler mCommandHandler;
 	};
 }

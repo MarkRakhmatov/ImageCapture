@@ -65,15 +65,16 @@ struct ConvHandler
 	return;
     }
     int32_t resultPix{};
-    const std::vector<KernelUnit>& kernelUnits= mKernel.Get();
+    KernelUnit kerUnit{};
     for(uint32_t counter = 0; counter < mKernelUnitsSize; ++counter)
     {
+	kerUnit = mKernel.Get()[counter];
 	resultPix +=
-		*buffer.GetElement(kernelUnits[counter].i + kernelMappingOffsetI,
-				   kernelUnits[counter].j + kernelMappingOffsetJ) * kernelUnits[counter].coeff;
+		*buffer.GetElement(kerUnit.i + kernelMappingOffsetI,
+				   kerUnit.j + kernelMappingOffsetJ) * kerUnit.coeff;
     }
 
-    resultBuffer.GetElement(i,j)[0] = Normalize<T>(resultPix);
+    *resultBuffer.GetElement(i,j) = Normalize<T>(resultPix);
   }
 private:
   Kernel mKernel;
@@ -135,11 +136,11 @@ public:
   template <typename T, typename ImageProcFunc>
   static void Convolution(ImageBuffer<T>& buffer, ImageBuffer<T>& resultBuffer, ImageProcFunc& imgProcessor)
   {
-    auto width = buffer.GetWidth();
-    auto height = buffer.GetHeight();
-    for(size_t i = 0; i < height; ++i)
+    const uint32_t width = buffer.GetWidth();
+    const uint32_t height = buffer.GetHeight();
+    for(uint32_t i = 0; i < height; ++i)
     {
-	for(size_t j = 0; j < width; ++j)
+	for(uint32_t j = 0; j < width; ++j)
 	{
 	    imgProcessor(buffer, resultBuffer, i, j);
 	}
